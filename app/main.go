@@ -17,7 +17,7 @@ func BS[T any](arr []T, target T, l int, r int, less func(a, b T) bool) (int, bo
 	}
 	mid := (l + r) / 2
 	if less(arr[mid], target) {
-		return BS(arr, target, mid+1, l, less)
+		return BS(arr, target, mid+1, r, less)
 	} else if less(target, arr[mid]) {
 		return BS(arr, target, l, mid-1, less)
 	}
