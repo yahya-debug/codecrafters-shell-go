@@ -83,9 +83,9 @@ func main() {
 				continue
 			}
 			// Run external command
-			if ok, path := Executable(command); ok {
+			if ok, _ := Executable(command); ok {
 				arguments := strings.Fields(commandLn[:len(commandLn)-1])
-				program := exec.Command(path, arguments[1:]...)
+				program := exec.Command(command, arguments[1:]...)
 				// Print, read and report errors the terminal
 				program.Stdin = os.Stdin
 				program.Stdout = os.Stdout
