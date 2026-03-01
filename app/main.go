@@ -20,8 +20,9 @@ func main() {
 				break
 			} else if strings.ToLower(strings.TrimSpace(strings.Split(command[:len(command)-1], " ")[0])) == "echo" {
 				for i := 1; i < len(strings.Split(command[:len(command)-1], " ")); i++ {
-					fmt.Println(strings.Split(command[:len(command)-1], " ")[i] + " ")
+					fmt.Print(strings.Split(command[:len(command)-1], " ")[i] + " ")
 				}
+				fmt.Println()
 				continue
 			}
 			fmt.Printf("%s: command not found", command[:len(command)-1])
