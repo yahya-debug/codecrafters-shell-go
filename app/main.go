@@ -54,10 +54,9 @@ func main() {
 			}
 			command := strings.ToLower(strings.TrimSpace(strings.Split(commandLn[:len(commandLn)-1], " ")[0]))
 			if command == "echo" {
-				for i := 1; i < len(strings.Split(commandLn[:len(commandLn)-1], " ")); i++ {
-					fmt.Print(strings.Split(commandLn[:len(commandLn)-1], " ")[i] + " ")
+				if idx := strings.Index(commandLn, " "); idx != -1 {
+					HandleEcho(commandLn[idx+1:])
 				}
-				fmt.Println()
 				continue
 			}
 
