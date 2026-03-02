@@ -44,7 +44,7 @@ func Executable(arg string) (bool, string) {
 
 func main() {
 	// TODO: Uncomment the code below to pass the first stage
-	comm := []string{"echo", "exit", "type"}
+	comm := []string{"echo", "exit", "pwd", "type"}
 	for {
 		fmt.Print("$ ")
 		commandLn, err := bufio.NewReader(os.Stdin).ReadString('\n')
@@ -68,7 +68,7 @@ func main() {
 				}
 				// Built in
 				arg := strings.ToLower(strings.TrimSpace(strings.Split(commandLn[:len(commandLn)-1], " ")[1]))
-				if _, ch := BS(comm, arg, 0, 2, comp); ch {
+				if _, ch := BS(comm, arg, 0, len(comm)-1, comp); ch {
 					fmt.Printf("%s is a shell builtin", arg)
 				} else {
 					// Search for executable files using PATH.
@@ -80,6 +80,12 @@ func main() {
 					}
 				}
 				fmt.Println()
+				continue
+			}
+			if command == "pwd" {
+				if pwd, err := os.Getwd(); err == nil {
+					fmt.Println(pwd)
+				}
 				continue
 			}
 			// Run external command
