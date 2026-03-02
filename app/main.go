@@ -95,8 +95,8 @@ func main() {
 				d := HandleCD(arg)
 				if !d {
 					fmt.Printf("cd: %s: No such file or directory", arg)
+					fmt.Println()
 				}
-				fmt.Println()
 				continue
 			}
 			// Run external command
