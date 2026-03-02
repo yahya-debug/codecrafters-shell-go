@@ -82,10 +82,21 @@ func main() {
 				fmt.Println()
 				continue
 			}
+			// get working directory
 			if command == "pwd" {
 				if pwd, err := os.Getwd(); err == nil {
 					fmt.Println(pwd)
 				}
+				continue
+			}
+			// Handle absolute path
+			if command == "cd" {
+				arg := strings.ToLower(strings.TrimSpace(strings.Split(commandLn[:len(commandLn)-1], " ")[1]))
+				d := HandleCD(arg)
+				if !d {
+					fmt.Printf("cd: %s: No such file or directory", arg)
+				}
+				fmt.Println()
 				continue
 			}
 			// Run external command
