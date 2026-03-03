@@ -21,7 +21,7 @@ func HandleEcho(args []string) {
 	for i < len(args) {
 		item := args[i]
 		valid := true
-		if item == ">" {
+		if item == ">" || item == "1>" {
 			minx(&inF_i, i)
 			inF = true
 			if i+1 == len(args) {
