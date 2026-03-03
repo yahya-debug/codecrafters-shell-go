@@ -10,7 +10,7 @@ func ParseInput(str string) []string {
 	var cur strings.Builder
 	var inSingle, inDouble bool = false, false
 	for i := 0; i < len(str); i++ {
-		if i < len(str)-1 && str[i] == '\\' {
+		if !inSingle && i < len(str)-1 && str[i] == '\\' {
 			cur.WriteByte(str[i+1])
 			i++
 			continue
