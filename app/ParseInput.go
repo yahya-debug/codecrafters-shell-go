@@ -10,6 +10,11 @@ func ParseInput(str string) []string {
 	var cur strings.Builder
 	var inSingle, inDouble bool = false, false
 	for i := 0; i < len(str); i++ {
+		if !inSingle && !inDouble && i < len(str)-1 && str[i] == '\\' {
+			cur.WriteByte(str[i+1])
+			i++
+			continue
+		}
 		switch str[i] {
 		case '\'':
 			if !inDouble {
@@ -36,12 +41,12 @@ func ParseInput(str string) []string {
 			}
 			res = append(res, ">")
 			continue
+
 		}
 		cur.WriteByte(str[i])
 	}
 	if cur.Len() > 0 {
 		res = append(res, cur.String())
 	}
-
 	return res
 }
