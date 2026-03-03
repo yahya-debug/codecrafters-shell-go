@@ -52,7 +52,7 @@ func main() {
 			if strings.ToLower(strings.TrimSpace(commandLn[:len(commandLn)-1])) == "exit" {
 				break
 			}
-			command := strings.ToLower(strings.TrimSpace(strings.Split(commandLn[:len(commandLn)-1], " ")[0]))
+			command := ParseInput(commandLn[:len(commandLn)-1])[0]
 			if command == "echo" {
 				if idx := strings.Index(commandLn, " "); idx != -1 {
 					HandleEcho(ParseInput(commandLn[idx+1 : len(commandLn)-1]))
@@ -90,7 +90,7 @@ func main() {
 			}
 			// Handle absolute path
 			if command == "cd" {
-				arg := strings.ToLower(strings.TrimSpace(strings.Split(commandLn[:len(commandLn)-1], " ")[1]))
+				arg := strings.TrimSpace(strings.Split(commandLn[:len(commandLn)-1], " ")[1])
 				d := HandleCD(arg)
 				if !d {
 					fmt.Printf("cd: %s: No such file or directory\n", arg)
