@@ -55,7 +55,7 @@ func main() {
 			command := strings.ToLower(strings.TrimSpace(strings.Split(commandLn[:len(commandLn)-1], " ")[0]))
 			if command == "echo" {
 				if idx := strings.Index(commandLn, " "); idx != -1 {
-					HandleEcho(commandLn[idx+1:])
+					HandleEcho(ParseInput(commandLn[idx+1 : len(commandLn)-1]))
 				}
 				continue
 			}
@@ -93,8 +93,7 @@ func main() {
 				arg := strings.ToLower(strings.TrimSpace(strings.Split(commandLn[:len(commandLn)-1], " ")[1]))
 				d := HandleCD(arg)
 				if !d {
-					fmt.Printf("cd: %s: No such file or directory", arg)
-					fmt.Println()
+					fmt.Printf("cd: %s: No such file or directory\n", arg)
 				}
 				continue
 			}
@@ -113,8 +112,7 @@ func main() {
 				continue
 			}
 			// Not found
-			fmt.Printf("%s: command not found", command)
-			fmt.Println()
+			fmt.Printf("%s: command not found\n", command)
 		} else {
 			fmt.Print(err)
 		}

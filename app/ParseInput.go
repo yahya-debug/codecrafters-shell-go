@@ -1,0 +1,39 @@
+package main
+
+import "strings"
+
+// Parse input to split the arguments using '"' '\” '>'
+func ParseInput(str string) []string {
+	var res []string
+	var cur strings.Builder
+	var inSingle, inDouble bool = false, false
+	for i := 0; i < len(str); i++ {
+		switch str[i] {
+		case '\'':
+			inSingle = !inSingle
+		case '"':
+			inDouble = !inDouble
+		case ' ':
+			if !inSingle && !inDouble {
+				if cur.Len() > 0 {
+					res = append(res, cur.String())
+					cur.Reset()
+				}
+				continue
+			}
+		case '>':
+			if !inSingle && !inDouble {
+				res = append(res, cur.String())
+				cur.Reset()
+			}
+			res = append(res, ">")
+			continue
+		}
+		cur.WriteByte(str[i])
+	}
+	if cur.Len() > 0 {
+		res = append(res, cur.String())
+	}
+
+	return res
+}
