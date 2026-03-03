@@ -1,6 +1,8 @@
 package main
 
-import "strings"
+import (
+	"strings"
+)
 
 // Parse input to split the arguments using '"' '\” '>'
 func ParseInput(str string) []string {
@@ -10,9 +12,15 @@ func ParseInput(str string) []string {
 	for i := 0; i < len(str); i++ {
 		switch str[i] {
 		case '\'':
-			inSingle = !inSingle
+			if !inDouble {
+				inSingle = !inSingle
+				continue
+			}
 		case '"':
-			inDouble = !inDouble
+			if !inSingle {
+				inDouble = !inDouble
+				continue
+			}
 		case ' ':
 			if !inSingle && !inDouble {
 				if cur.Len() > 0 {
