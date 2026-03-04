@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"fmt"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strings"
 )
@@ -99,16 +98,7 @@ func main() {
 			}
 			// Run external command
 			if ok, _ := Executable(command); ok {
-				arguments := ParseInput(commandLn[:len(commandLn)-1])
-				program := exec.Command(command, arguments[1:]...)
-				// Print, read and report errors the terminal
-				program.Stdin = os.Stdin
-				program.Stdout = os.Stdout
-				program.Stderr = os.Stderr
-				err := program.Run()
-				if err != nil {
-					fmt.Println(err)
-				}
+				external_command(commandLn)
 				continue
 			}
 			// Not found

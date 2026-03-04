@@ -36,17 +36,21 @@ func ParseInput(str string) []string {
 			}
 		case '>':
 			if !inSingle && !inDouble {
-				res = append(res, cur.String())
-				cur.Reset()
+				if cur.Len() > 0 {
+					res = append(res, cur.String())
+					cur.Reset()
+				}
 			}
 			res = append(res, ">")
 			continue
 		case '1':
 			if i < len(str)-1 && str[i+1] == '>' {
-				res = append(res, cur.String())
-				cur.Reset()
+				if cur.Len() > 0 {
+					res = append(res, cur.String())
+					cur.Reset()
+				}
+				continue
 			}
-			continue
 		}
 		cur.WriteByte(str[i])
 	}
