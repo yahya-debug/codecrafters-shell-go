@@ -41,8 +41,9 @@ func ParseInput(str string) []string {
 					cur.Reset()
 				}
 				if i < len(str)-1 && str[i+1] == '>' {
-					res = append(res, ">")
+					res = append(res, ">>")
 					i++
+					continue
 				}
 			}
 			res = append(res, ">")

@@ -8,7 +8,7 @@ import (
 
 func HandleEcho(args []string) {
 	var file, errfile string
-	var nl, is, inF bool = true, false, false
+	var nl, is, inF, apnd bool = true, false, false, false
 	i := 0
 
 	minx := func(a *int, b int) {
@@ -16,19 +16,23 @@ func HandleEcho(args []string) {
 			*a = b
 		}
 	}
+	fmt.Printf("%q\n", args)
 	inF_i := len(args)
 	idc := 0
 	for i < len(args) {
 		item := args[i]
 		valid := true
-		if item == ">" || item == "1>" || item == "2>" {
+		if item == ">" || item == "2>" || item == ">>" || item == "2>>" {
 			minx(&inF_i, i)
 			inF = true
 			if i+1 == len(args) {
 				fmt.Println("echo: syntax error near unexpected token `newline'")
 				return
 			}
-			if item == "2>" {
+			if item == ">>" || item == "2>>" {
+				apnd = true
+			}
+			if item == "2>" || item == "2>>" {
 				errfile = args[i+1]
 			} else {
 				file = args[i+1]
@@ -66,7 +70,13 @@ func HandleEcho(args []string) {
 	oldStderr := os.Stderr
 
 	if file != "" {
-		f, err := os.Create(file)
+		var f *os.File
+		var err error
+		if apnd {
+			f, err = os.OpenFile(file, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
+		} else {
+			f, err = os.Create(file)
+		}
 		if err != nil {
 			fmt.Println(err)
 			return
@@ -76,7 +86,13 @@ func HandleEcho(args []string) {
 	}
 
 	if errfile != "" {
-		f, err := os.Create(errfile)
+		var f *os.File
+		var err error
+		if apnd {
+			f, err = os.OpenFile(errfile, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
+		} else {
+			f, err = os.Create(errfile)
+		}
 		if err != nil {
 			fmt.Println(err)
 			return
