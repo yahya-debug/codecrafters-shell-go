@@ -44,8 +44,5 @@ func external_command(commandLn string) {
 		program.Stdout = f
 	}
 	// Print, read and report errors the terminal
-	err := program.Run()
-	if err != nil {
-		fmt.Println(err)
-	}
+	_ = program.Run()
 }
