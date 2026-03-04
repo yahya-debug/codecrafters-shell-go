@@ -41,6 +41,7 @@ func ReadLine() string {
 
 func auto_complete(str []byte) []byte {
 	cmd := string(str)
+	var ret strings.Builder
 	matches := make(map[int][]string)
 	mx := 0
 	for _, com := range comm {
@@ -58,6 +59,10 @@ func auto_complete(str []byte) []byte {
 	}
 	if mx > 0 && len(matches[mx]) == 1 {
 		fmt.Printf("\r$ %s ", matches[mx][0])
+		for i := 0; i < len(matches[mx][0]); i++ {
+			ret.WriteByte(matches[mx][0][i])
+		}
+		ret.WriteByte(' ')
 	}
-	return []byte(matches[mx][0])
+	return []byte(ret.String())
 }
