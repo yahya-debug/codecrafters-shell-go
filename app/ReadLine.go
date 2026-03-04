@@ -8,6 +8,13 @@ import (
 	"golang.org/x/term"
 )
 
+const prompt = "$ "
+
+func redraw(line []byte) {
+	fmt.Print("\r\033[K")
+	fmt.Printf("%s%s", prompt, line)
+}
+
 func ReadLine() string {
 	oldState, _ := term.MakeRaw(int(os.Stdin.Fd()))
 	defer term.Restore(int(os.Stdin.Fd()), oldState)
@@ -26,7 +33,7 @@ func ReadLine() string {
 		case 127:
 			if len(line) > 0 {
 				line = line[:len(line)-1]
-				fmt.Print("\b \b")
+				redraw(line)
 			}
 		case 3: // Ctrl+C
 			fmt.Println()
@@ -57,16 +64,51 @@ func auto_complete(str []byte) []byte {
 			}
 		}
 	}
+
 	if mx > 0 && len(matches[mx]) == 1 {
-		fmt.Printf("\r$ %s ", matches[mx][0])
+		l := matches[mx][0] + " "
+		redraw([]byte(l))
 		for i := 0; i < len(matches[mx][0]); i++ {
 			ret.WriteByte(matches[mx][0][i])
 		}
 		ret.WriteByte(' ')
 	} else {
-		fmt.Print("\a")
-		for i := 0; i < len(cmd); i++ {
-			ret.WriteByte(cmd[i])
+		d := BSs(execs, cmd, 0, len(execs)-1, func(a, b string) bool {
+			if strings.HasPrefix(b, a) {
+				return false // 'b' is not strictly greater than 'a' if it contains 'a' as a prefix
+			}
+			return a < b
+		})
+		for i := d; i < len(execs); i++ {
+			com := execs[i]
+			if !strings.HasPrefix(com, cmd) {
+				break
+			}
+			for i := 0; i < len(cmd); i++ {
+				if cmd[i] != com[i] {
+					maxx(&mx, i)
+					matches[i] = append(matches[i], com)
+					break
+				}
+				if i == len(cmd)-1 {
+					maxx(&mx, i+1)
+					matches[i+1] = append(matches[i+1], com)
+				}
+			}
+		}
+		if mx > 0 && len(matches[mx]) == 1 {
+			l := matches[mx][0] + " "
+			redraw([]byte(l))
+			for i := 0; i < len(matches[mx][0]); i++ {
+				ret.WriteByte(matches[mx][0][i])
+			}
+			ret.WriteByte(' ')
+		} else {
+			fmt.Print("\a")
+			for i := 0; i < len(cmd); i++ {
+				ret.WriteByte(cmd[i])
+			}
+
 		}
 	}
 	return []byte(ret.String())

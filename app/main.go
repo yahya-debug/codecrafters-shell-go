@@ -10,20 +10,6 @@ import (
 // Ensures gofmt doesn't remove the "fmt" import in stage 1 (feel free to remove this!)
 var _ = fmt.Print
 
-// Binary search
-func BS[T any](arr []T, target T, l int, r int, less func(a, b T) bool) (int, bool) {
-	if r < l {
-		return -1, false
-	}
-	mid := (l + r) / 2
-	if less(arr[mid], target) {
-		return BS(arr, target, mid+1, r, less)
-	} else if less(target, arr[mid]) {
-		return BS(arr, target, l, mid-1, less)
-	}
-	return mid, true
-}
-
 func Executable(arg string) (bool, string) {
 	pathEnv := os.Getenv("PATH")
 	dirs := strings.Split(pathEnv, ":")
@@ -41,9 +27,34 @@ func Executable(arg string) (bool, string) {
 }
 
 var comm []string = []string{"echo", "exit", "pwd", "type"}
+var execs []string
 
 func main() {
-	// TODO: Uncomment the code below to pass the first stage
+	getExecs := func() {
+		pathEnv := os.Getenv("PATH")
+		dirs := strings.Split(pathEnv, ":")
+		for _, dir := range dirs {
+			files, err := os.ReadDir(dir)
+			if err != nil {
+				continue
+			}
+			for _, f := range files {
+				info, err := f.Info()
+				if err != nil {
+					continue
+				}
+				if !info.IsDir() && info.Mode()&0111 != 0 {
+					execs = append(execs, f.Name())
+				}
+			}
+		}
+	}
+	getExecs()
+	execs = MergeSort(execs)
+	// for _, i := range execs {
+	// 	fmt.Printf("%s ", i)
+	// }
+	// fmt.Println()
 	for {
 		fmt.Print("$ ")
 		commandLn := ReadLine()

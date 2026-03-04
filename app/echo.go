@@ -6,16 +6,6 @@ import (
 	"strings"
 )
 
-func minx(a *int, b int) {
-	if b < *a {
-		*a = b
-	}
-}
-func maxx(a *int, b int) {
-	if b > *a {
-		*a = b
-	}
-}
 func HandleEcho(args []string) {
 	var file, errfile string
 	var nl, is, inF, apnd bool = true, false, false, false
