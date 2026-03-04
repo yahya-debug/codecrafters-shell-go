@@ -57,7 +57,7 @@ func auto_complete(str []byte) []byte {
 		}
 	}
 	if mx > 0 && len(matches[mx]) == 1 {
-		fmt.Printf("\r$ %s", matches[mx][0])
+		fmt.Printf("\r$ %s ", matches[mx][0])
 	}
 	return []byte(matches[mx][0])
 }
