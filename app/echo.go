@@ -7,7 +7,7 @@ import (
 )
 
 func HandleEcho(args []string) {
-	var file string
+	var file, errfile string
 	var nl, is, inF bool = true, false, false
 	i := 0
 
@@ -21,14 +21,18 @@ func HandleEcho(args []string) {
 	for i < len(args) {
 		item := args[i]
 		valid := true
-		if item == ">" || item == "1>" {
+		if item == ">" || item == "1>" || item == "2>" {
 			minx(&inF_i, i)
 			inF = true
 			if i+1 == len(args) {
 				fmt.Println("echo: syntax error near unexpected token `newline'")
 				return
 			}
-			file = args[i+1]
+			if item == "2>" {
+				errfile = args[i+1]
+			} else {
+				file = args[i+1]
+			}
 			i++
 			continue
 		} else if len(item) > 1 && item[0] == '-' && !inF && valid {
@@ -58,33 +62,36 @@ func HandleEcho(args []string) {
 	if is {
 		output = interpret(output)
 	}
-	if nl {
-		oldStdout := os.Stdout
-		if inF {
-			f, err := os.Create(file)
-			if err != nil {
-				fmt.Println(err)
-				return
-			}
-			defer f.Close()
-			os.Stdout = f
+	oldStdout := os.Stdout
+	oldStderr := os.Stderr
+
+	if file != "" {
+		f, err := os.Create(file)
+		if err != nil {
+			fmt.Println(err)
+			return
 		}
-		fmt.Println(output)
-		os.Stdout = oldStdout
-	} else {
-		oldStdout := os.Stdout
-		if inF {
-			f, err := os.Create(file)
-			if err != nil {
-				fmt.Println(err)
-				return
-			}
-			defer f.Close()
-			os.Stdout = f
-		}
-		fmt.Print(output)
-		os.Stdout = oldStdout
+		defer f.Close()
+		os.Stdout = f
 	}
+
+	if errfile != "" {
+		f, err := os.Create(errfile)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		defer f.Close()
+		os.Stderr = f
+	}
+	if nl {
+		fmt.Println(output)
+	} else {
+		fmt.Print(output)
+	}
+
+	os.Stdout = oldStdout
+	os.Stderr = oldStderr
 }
 
 func interpret(str string) string {

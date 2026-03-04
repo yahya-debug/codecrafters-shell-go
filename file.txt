@@ -1,8 +1,0 @@
-cd.go
-echo.go
-ExternalComm.go
-file.txt
-foo.md
-main.go
-ParseInput.go
-sdsss     1.txt
