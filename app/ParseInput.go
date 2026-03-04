@@ -40,6 +40,10 @@ func ParseInput(str string) []string {
 					res = append(res, cur.String())
 					cur.Reset()
 				}
+				if i < len(str)-1 && str[i+1] == '>' {
+					res = append(res, ">")
+					i++
+				}
 			}
 			res = append(res, ">")
 			continue
@@ -52,6 +56,15 @@ func ParseInput(str string) []string {
 				continue
 			}
 		case '2':
+			if i < len(str)-2 && str[i+1] == '>' && str[i+2] == '>' {
+				if cur.Len() > 0 {
+					res = append(res, cur.String())
+					cur.Reset()
+				}
+				res = append(res, "2>>")
+				i += 2
+				continue
+			}
 			if i < len(str)-1 && str[i+1] == '>' {
 				if cur.Len() > 0 {
 					res = append(res, cur.String())
