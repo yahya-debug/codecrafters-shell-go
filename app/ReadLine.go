@@ -10,6 +10,8 @@ import (
 
 const prompt = "$ "
 
+var tabs int = 0
+
 func redraw(line []byte) {
 	fmt.Print("\r\033[K")
 	fmt.Printf("%s%s", prompt, line)
@@ -26,9 +28,15 @@ func ReadLine() string {
 		case '\n', '\r':
 			fmt.Println()
 			fmt.Print("\r")
+			tabs = 0
 			return strings.TrimRight(string(line), "\r\n")
 		case '\t':
+			tabs++
 			line = auto_complete(line)
+			if tabs == 2 {
+				tabs = 0
+				return ""
+			}
 			continue
 		case 127:
 			if len(line) > 0 {
@@ -43,72 +51,62 @@ func ReadLine() string {
 			line = append(line, buf[0])
 			fmt.Printf("%c", buf[0])
 		}
+		tabs = 0
 	}
 }
 
 func auto_complete(str []byte) []byte {
+	// cast to string
 	cmd := string(str)
-	var ret strings.Builder
-	matches := make(map[int][]string)
-	mx := 0
+	var ret strings.Builder // resulting string
+	var matches []string    // map [number of matching prefixes] = {strings with this count}
 	for _, com := range comm {
-		for i := 0; i < len(cmd); i++ {
-			if cmd[i] != com[i] {
-				maxx(&mx, i)
-				matches[i] = append(matches[i], com)
-				break
-			}
-			if i == len(cmd)-1 {
-				maxx(&mx, i+1)
-				matches[i+1] = append(matches[i+1], com)
-			}
+		if strings.HasPrefix(com, cmd) {
+			matches = append(matches, com)
 		}
 	}
-
-	if mx > 0 && len(matches[mx]) == 1 {
-		l := matches[mx][0] + " "
+	if len(matches) == 1 {
+		l := matches[0] + " "
 		redraw([]byte(l))
-		for i := 0; i < len(matches[mx][0]); i++ {
-			ret.WriteByte(matches[mx][0][i])
+		for i := 0; i < len(matches[0]); i++ {
+			ret.WriteByte(matches[0][i])
 		}
 		ret.WriteByte(' ')
+	} else if len(matches) > 1 && tabs == 2 {
+		fmt.Println("\r")
+		for _, i := range matches {
+			fmt.Printf("%s	", i)
+		}
+		fmt.Println("\r")
 	} else {
 		d := BSs(execs, cmd, 0, len(execs)-1, func(a, b string) bool {
-			if strings.HasPrefix(b, a) {
-				return false // 'b' is not strictly greater than 'a' if it contains 'a' as a prefix
-			}
 			return a < b
 		})
+
 		for i := d; i < len(execs); i++ {
 			com := execs[i]
-			if !strings.HasPrefix(com, cmd) {
-				break
-			}
-			for i := 0; i < len(cmd); i++ {
-				if cmd[i] != com[i] {
-					maxx(&mx, i)
-					matches[i] = append(matches[i], com)
-					break
-				}
-				if i == len(cmd)-1 {
-					maxx(&mx, i+1)
-					matches[i+1] = append(matches[i+1], com)
-				}
+			if strings.HasPrefix(com, cmd) {
+				matches = append(matches, com)
 			}
 		}
-		if mx > 0 && len(matches[mx]) == 1 {
-			l := matches[mx][0] + " "
+		if len(matches) == 1 {
+			l := matches[0] + " "
 			redraw([]byte(l))
-			for i := 0; i < len(matches[mx][0]); i++ {
-				ret.WriteByte(matches[mx][0][i])
+			for i := 0; i < len(matches[0]); i++ {
+				ret.WriteByte(matches[0][i])
 			}
 			ret.WriteByte(' ')
+		} else if len(matches) > 1 && tabs == 2 {
+			fmt.Println("\r")
+			for _, i := range matches {
+				fmt.Printf("%s	", i)
+			}
+			fmt.Println("\r")
 		} else {
 			fmt.Print("\a")
 			for i := 0; i < len(cmd); i++ {
 				ret.WriteByte(cmd[i])
 			}
-
 		}
 	}
 	return []byte(ret.String())

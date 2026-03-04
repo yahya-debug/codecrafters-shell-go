@@ -1,6 +1,8 @@
 package main
 
-import "cmp"
+import (
+	"cmp"
+)
 
 // MergeSort is a recursive function that sorts a slice of integers using the merge sort algorithm.
 func MergeSort[T cmp.Ordered](items []T) []T {
@@ -57,6 +59,7 @@ func BS[T any](arr []T, target T, l int, r int, less func(a, b T) bool) (int, bo
 	return mid, true
 }
 func BSs[T any](arr []T, target T, l int, r int, less func(a, b T) bool) int {
+	// fmt.Println(target)
 	if r-l <= 1 {
 		return l
 	}
