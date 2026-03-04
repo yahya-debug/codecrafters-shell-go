@@ -16,7 +16,6 @@ func HandleEcho(args []string) {
 			*a = b
 		}
 	}
-	fmt.Printf("%q\n", args)
 	inF_i := len(args)
 	idc := 0
 	for i < len(args) {
