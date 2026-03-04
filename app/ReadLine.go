@@ -63,6 +63,10 @@ func auto_complete(str []byte) []byte {
 			ret.WriteByte(matches[mx][0][i])
 		}
 		ret.WriteByte(' ')
+	} else {
+		for i := 0; i < len(cmd); i++ {
+			ret.WriteByte(cmd[i])
+		}
 	}
 	return []byte(ret.String())
 }
