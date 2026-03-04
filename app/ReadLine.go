@@ -64,6 +64,7 @@ func auto_complete(str []byte) []byte {
 		}
 		ret.WriteByte(' ')
 	} else {
+		fmt.Print("\a")
 		for i := 0; i < len(cmd); i++ {
 			ret.WriteByte(cmd[i])
 		}
