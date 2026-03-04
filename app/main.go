@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -41,70 +40,70 @@ func Executable(arg string) (bool, string) {
 	return false, ""
 }
 
+var comm []string = []string{"echo", "exit", "pwd", "type"}
+
 func main() {
 	// TODO: Uncomment the code below to pass the first stage
-	comm := []string{"echo", "exit", "pwd", "type"}
 	for {
 		fmt.Print("$ ")
-		commandLn, err := bufio.NewReader(os.Stdin).ReadString('\n')
-		if err == nil {
-			if strings.ToLower(strings.TrimSpace(commandLn[:len(commandLn)-1])) == "exit" {
-				break
-			}
-			command := ParseInput(commandLn[:len(commandLn)-1])[0]
-			if command == "echo" {
-				if idx := strings.Index(commandLn, " "); idx != -1 {
-					HandleEcho(ParseInput(commandLn[idx+1 : len(commandLn)-1]))
-				}
-				continue
-			}
-
-			// Type command
-			if command == "type" {
-				comp := func(a, b string) bool {
-					return a < b
-				}
-				// Built in
-				arg := strings.ToLower(strings.TrimSpace(strings.Split(commandLn[:len(commandLn)-1], " ")[1]))
-				if _, ch := BS(comm, arg, 0, len(comm)-1, comp); ch {
-					fmt.Printf("%s is a shell builtin", arg)
-				} else {
-					// Search for executable files using PATH.
-					ch, path := Executable(arg)
-					if ch {
-						fmt.Printf("%s is %s", arg, path)
-					} else {
-						fmt.Printf("%s: not found", strings.ToLower(strings.TrimSpace(strings.Split(commandLn[:len(commandLn)-1], " ")[1])))
-					}
-				}
-				fmt.Println()
-				continue
-			}
-			// get working directory
-			if command == "pwd" {
-				if pwd, err := os.Getwd(); err == nil {
-					fmt.Println(pwd)
-				}
-				continue
-			}
-			// Handle absolute path
-			if command == "cd" {
-				arg := strings.TrimSpace(strings.Split(commandLn[:len(commandLn)-1], " ")[1])
-				d := HandleCD(arg)
-				if !d {
-					fmt.Printf("cd: %s: No such file or directory\n", arg)
-				}
-				continue
-			}
-			// Run external command
-			if ok, _ := Executable(command); ok {
-				external_command(commandLn)
-				continue
-			}
-			// Not found
-			fmt.Printf("%s: command not found\n", command)
-		} else {
-			fmt.Print(err)
+		commandLn := ReadLine()
+		if commandLn == "" {
+			continue
 		}
+		command := ParseInput(commandLn)[0]
+		if command == "exit" || commandLn == "" {
+			break
+		}
+		if command == "echo" {
+			if idx := strings.Index(commandLn, " "); idx != -1 {
+				HandleEcho(ParseInput(commandLn[idx+1:]))
+			}
+			continue
+		}
+
+		// Type command
+		if command == "type" {
+			comp := func(a, b string) bool {
+				return a < b
+			}
+			// Built in
+			arg := strings.ToLower(strings.TrimSpace(strings.Split(commandLn, " ")[1]))
+			if _, ch := BS(comm, arg, 0, len(comm)-1, comp); ch {
+				fmt.Printf("%s is a shell builtin", arg)
+			} else {
+				// Search for executable files using PATH.
+				ch, path := Executable(arg)
+				if ch {
+					fmt.Printf("%s is %s", arg, path)
+				} else {
+					fmt.Printf("%s: not found", strings.ToLower(strings.TrimSpace(strings.Split(commandLn, " ")[1])))
+				}
+			}
+			fmt.Println()
+			continue
+		}
+		// get working directory
+		if command == "pwd" {
+			if pwd, err := os.Getwd(); err == nil {
+				fmt.Println(pwd)
+			}
+			continue
+		}
+		// Handle absolute path
+		if command == "cd" {
+			arg := strings.TrimSpace(strings.Split(commandLn, " ")[1])
+			d := HandleCD(arg)
+			if !d {
+				fmt.Printf("\rcd: %s: No such file or directory\n", arg)
+			}
+			continue
+		}
+		// Run external command
+		if ok, _ := Executable(command); ok {
+			external_command(commandLn)
+			continue
+		}
+		// Not found
+		fmt.Printf("\r%s: command not found\n", command)
 	}
 }

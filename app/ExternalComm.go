@@ -7,13 +7,13 @@ import (
 )
 
 func external_command(commandLn string) {
-	arguments := ParseInput(commandLn[:len(commandLn)-1])
+	arguments := ParseInput(commandLn)
 	var outfile, errfile string
 	var apnd bool
 	tp := arguments[1:] // to pass arguments
 	for i := 0; i < len(arguments); i++ {
 		if arguments[i] == ">" || arguments[i] == "2>" || arguments[i] == ">>" || arguments[i] == "2>>" {
-			arguments := ParseInput(commandLn[:len(commandLn)-1])
+			arguments := ParseInput(commandLn)
 
 			if i+1 >= len(arguments) {
 				fmt.Println("syntax error near unexpected token `newline`")
