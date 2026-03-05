@@ -4,6 +4,11 @@ import (
 	"cmp"
 )
 
+type Pair[T, U any] struct {
+	f T
+	s U
+}
+
 // MergeSort is a recursive function that sorts a slice of integers using the merge sort algorithm.
 func MergeSort[T cmp.Ordered](items []T) []T {
 	// Base case: a slice with fewer than 2 elements is already sorted.

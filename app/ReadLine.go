@@ -57,6 +57,19 @@ func ReadLine() string {
 	}
 }
 
+func find_fileMatching(str string) ([]Pair[string, bool], []string) {
+	files, _ := os.ReadDir(".")
+	var matches []Pair[string, bool]
+	var names []string
+	for _, file := range files {
+		if strings.HasPrefix(file.Name(), str) {
+			pair := Pair[string, bool]{file.Name(), file.IsDir()}
+			matches = append(matches, pair)
+			names = append(names, file.Name())
+		}
+	}
+	return matches, names
+}
 func find_matching(str []byte) []string {
 	var matches []string
 	// cast to string
@@ -102,52 +115,127 @@ func LCP(matches []string) string {
 	return matches[0][:it]
 }
 
-var matches []string // map [number of matching prefixes] = {strings with this count}
+var matches, f_names []string // map [number of matching prefixes] = {strings with this count}
+var fileMatches []Pair[string, bool]
+
 func auto_complete(str []byte) []byte {
 	cmd := string(str)
+	// complete commands
+	completeComm := func() []byte {
+		var ret strings.Builder // resulting string
+		// first tab
+		if tabs == 1 {
 
-	var ret strings.Builder // resulting string
-	// first tab
-	if tabs == 1 {
-
-		matches = find_matching(str)
-		lcp := LCP(matches)
-		// fmt.Printf("\r%s\n", lcp)
-		if len(matches) == 1 { // found 1 match in builtin commands
-			l := matches[0] + " "
-			redraw([]byte(l))
-			for i := 0; i < len(matches[0]); i++ {
-				ret.WriteByte(matches[0][i])
-			}
-			ret.WriteByte(' ')
-		} else if len(matches) > 1 && len(lcp) > len(cmd) {
-			// fmt.Print(lcp)
-			for i := 0; i < len(lcp); i++ {
-				ret.WriteByte(lcp[i])
-			}
-			redraw([]byte(ret.String()))
-		} else {
-			for i := 0; i < len(cmd); i++ {
-				ret.WriteByte(cmd[i])
-			}
-			fmt.Print("\a") // bell to ring
-		}
-	} else {
-		if len(matches) > 1 {
-			fmt.Println("\r")
-			for _, i := range matches {
-				fmt.Printf("%s	", i)
-			}
-			fmt.Println("\r")
-			for i := 0; i < len(cmd); i++ {
-				ret.WriteByte(cmd[i])
+			matches = find_matching(str)
+			lcp := LCP(matches)
+			// fmt.Printf("\r%s\n", lcp)
+			if len(matches) == 1 { // found 1 match in builtin commands
+				l := matches[0] + " "
+				redraw([]byte(l))
+				for i := 0; i < len(matches[0]); i++ {
+					ret.WriteByte(matches[0][i])
+				}
+				ret.WriteByte(' ')
+			} else if len(matches) > 1 && len(lcp) > len(cmd) {
+				// fmt.Print(lcp)
+				for i := 0; i < len(lcp); i++ {
+					ret.WriteByte(lcp[i])
+				}
+				redraw([]byte(ret.String()))
+			} else {
+				for i := 0; i < len(cmd); i++ {
+					ret.WriteByte(cmd[i])
+				}
+				fmt.Print("\a") // bell to ring
 			}
 		} else {
-			for i := 0; i < len(cmd); i++ {
-				ret.WriteByte(cmd[i])
+			if len(matches) > 1 {
+				fmt.Println("\r")
+				for _, i := range matches {
+					fmt.Printf("%s	", i)
+				}
+				fmt.Println("\r")
+				for i := 0; i < len(cmd); i++ {
+					ret.WriteByte(cmd[i])
+				}
+			} else {
+				for i := 0; i < len(cmd); i++ {
+					ret.WriteByte(cmd[i])
+				}
+				fmt.Print("\a") // bell to ring
 			}
-			fmt.Print("\a") // bell to ring
 		}
+		return []byte(ret.String())
 	}
-	return []byte(ret.String())
+
+	// complete for file names
+	completeFile := func() []byte {
+		var ret strings.Builder // resulting string
+		cmd_parts := ParseInput(strings.TrimSpace(cmd))
+		cur_F := cmd_parts[len(cmd_parts)-1]
+		cut := strings.TrimSuffix(cmd, cur_F)
+		for i := 0; i < len(cut); i++ {
+			ret.WriteByte(cut[i])
+		}
+		if tabs == 1 {
+			fileMatches, f_names = find_fileMatching(cur_F)
+			lcp := LCP(f_names)
+			for _, i := range fileMatches {
+				fmt.Print(i)
+
+			}
+			if len(fileMatches) == 1 {
+				var l string
+				for i := 0; i < len(fileMatches[0].f); i++ {
+					ret.WriteByte(fileMatches[0].f[i])
+				}
+				l = strings.TrimSuffix(cmd, cur_F)
+				if fileMatches[0].s {
+					l += fileMatches[0].f + "/ "
+					ret.WriteByte('/')
+				} else {
+					l += fileMatches[0].f + " "
+				}
+				redraw([]byte(l))
+				ret.WriteByte(' ')
+			} else if len(fileMatches) > 1 && len(lcp) > len(cur_F) {
+				for i := 0; i < len(lcp); i++ {
+					ret.WriteByte(lcp[i])
+				}
+				redraw([]byte(ret.String()))
+			} else {
+				for i := 0; i < len(cmd); i++ {
+					ret.WriteByte(cmd[i])
+				}
+				fmt.Print("\a") // bell to ring
+			}
+		} else {
+			if len(fileMatches) > 1 {
+				fmt.Println("\r")
+				for _, i := range fileMatches {
+					if i.s {
+						fmt.Printf("%s/	", i.f)
+					} else {
+						fmt.Printf("%s	", i.f)
+
+					}
+				}
+				fmt.Println("\r")
+				for i := 0; i < len(cmd); i++ {
+					ret.WriteByte(cmd[i])
+				}
+			} else {
+				for i := 0; i < len(cmd); i++ {
+					ret.WriteByte(cmd[i])
+				}
+				fmt.Print("\a") // bell to ring
+			}
+		}
+
+		return []byte(ret.String())
+	}
+	if len(strings.Split(strings.TrimSpace(cmd), " ")) == 1 {
+		return completeComm()
+	}
+	return completeFile()
 }
