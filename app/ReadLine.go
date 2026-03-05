@@ -57,11 +57,10 @@ func ReadLine() string {
 	}
 }
 
-var matches []string // map [number of matching prefixes] = {strings with this count}
-func find_matching(str []byte) {
+func find_matching(str []byte) []string {
+	var matches []string
 	// cast to string
 	cmd := string(str)
-
 	// Find matches in builtin commands
 	for _, com := range comm {
 		if strings.HasPrefix(com, cmd) {
@@ -84,10 +83,11 @@ func find_matching(str []byte) {
 			}
 		}
 	}
+	return matches
 }
 
 // TODO: Now we will find the longest common prefix among all matches (if exists)
-func LCP() string {
+func LCP(matches []string) string {
 	if len(matches) == 0 {
 		return ""
 	}
@@ -96,19 +96,23 @@ func LCP() string {
 	}
 	MergeSort(matches)
 	it := 0
-	for it < len(matches[0]) && it < len(matches[len(matches)-1]) && matches[0][i] == matches[len(matches)-1][i] {
+	for it < len(matches[0]) && it < len(matches[len(matches)-1]) && matches[0][it] == matches[len(matches)-1][it] {
 		it++
 	}
 	return matches[0][:it]
 }
+
+var matches []string // map [number of matching prefixes] = {strings with this count}
 func auto_complete(str []byte) []byte {
 	cmd := string(str)
 
 	var ret strings.Builder // resulting string
 	// first tab
 	if tabs == 1 {
-		clear(matches)
-		find_matching(str)
+
+		matches = find_matching(str)
+		lcp := LCP(matches)
+		// fmt.Printf("\r%s\n", lcp)
 		if len(matches) == 1 { // found 1 match in builtin commands
 			l := matches[0] + " "
 			redraw([]byte(l))
@@ -116,12 +120,17 @@ func auto_complete(str []byte) []byte {
 				ret.WriteByte(matches[0][i])
 			}
 			ret.WriteByte(' ')
-		} else if len(matches) > 1 {
-			lcp := LCP()
-			fmt.Println("\r")
+		} else if len(matches) > 1 && len(lcp) > len(cmd) {
+			// fmt.Print(lcp)
 			for i := 0; i < len(lcp); i++ {
 				ret.WriteByte(lcp[i])
 			}
+			redraw([]byte(ret.String()))
+		} else {
+			for i := 0; i < len(cmd); i++ {
+				ret.WriteByte(cmd[i])
+			}
+			fmt.Print("\a") // bell to ring
 		}
 	} else {
 		if len(matches) > 1 {
@@ -133,24 +142,12 @@ func auto_complete(str []byte) []byte {
 			for i := 0; i < len(cmd); i++ {
 				ret.WriteByte(cmd[i])
 			}
+		} else {
+			for i := 0; i < len(cmd); i++ {
+				ret.WriteByte(cmd[i])
+			}
+			fmt.Print("\a") // bell to ring
 		}
 	}
-
-	// if len(matches) > 1 && tabs == 2 { // many in builtin commands -> handle duplicated tabs
-	// 	fmt.Println("\r")
-	// 	for _, i := range matches {
-	// 		fmt.Printf("%s	", i)
-	// 	}
-	// 	fmt.Println("\r")
-	// 	for i := 0; i < len(cmd); i++ {
-	// 		ret.WriteByte(cmd[i])
-	// 	}
-	// } else {
-	// 	// if multiple but 1 tab || no match -> bell to ring
-	// 	fmt.Print("\a") // bell to ring
-	// 	for i := 0; i < len(cmd); i++ {
-	// 		ret.WriteByte(cmd[i])
-	// 	}
-	// }
 	return []byte(ret.String())
 }

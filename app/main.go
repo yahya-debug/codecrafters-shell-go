@@ -26,7 +26,7 @@ func Executable(arg string) (bool, string) {
 	return false, ""
 }
 
-var comm []string = []string{"echo", "exit", "pwd", "type"}
+var comm []string = []string{"cd", "echo", "exit", "pwd", "type"}
 var execs []string
 
 func main() {
