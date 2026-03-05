@@ -57,11 +57,10 @@ func ReadLine() string {
 	}
 }
 
-func auto_complete(str []byte) []byte {
+var matches []string // map [number of matching prefixes] = {strings with this count}
+func find_matching(str []byte) {
 	// cast to string
 	cmd := string(str)
-	var ret strings.Builder // resulting string
-	var matches []string    // map [number of matching prefixes] = {strings with this count}
 
 	// Find matches in builtin commands
 	for _, com := range comm {
@@ -69,23 +68,11 @@ func auto_complete(str []byte) []byte {
 			matches = append(matches, com)
 		}
 	}
-	if len(matches) == 1 { // found 1 match in builtin commands
-		l := matches[0] + " "
-		redraw([]byte(l))
-		for i := 0; i < len(matches[0]); i++ {
-			ret.WriteByte(matches[0][i])
-		}
-		ret.WriteByte(' ')
-	} else if len(matches) > 1 && tabs == 2 { // many in builtin commands -> handle duplicated tabs
-		fmt.Println("\r")
-		for _, i := range matches {
-			fmt.Printf("%s	", i)
-		}
-		fmt.Println("\r")
-		for i := 0; i < len(cmd); i++ {
-			ret.WriteByte(cmd[i])
-		}
-	} else { // search in Executable commands
+
+	// if no matches in the built in commands
+	if len(matches) == 0 {
+		// search in executables
+		// use binary search to fastly find the matching sequence
 		d := BSs(execs, cmd, 0, len(execs)-1, func(a, b string) bool {
 			return a < b
 		})
@@ -96,15 +83,48 @@ func auto_complete(str []byte) []byte {
 				matches = append(matches, com)
 			}
 		}
+	}
+}
 
-		if len(matches) == 1 { // Found 1 match in Executable
+// TODO: Now we will find the longest common prefix among all matches (if exists)
+func LCP() string {
+	if len(matches) == 0 {
+		return ""
+	}
+	if len(matches) == 1 {
+		return matches[0]
+	}
+	MergeSort(matches)
+	it := 0
+	for it < len(matches[0]) && it < len(matches[len(matches)-1]) && matches[0][i] == matches[len(matches)-1][i] {
+		it++
+	}
+	return matches[0][:it]
+}
+func auto_complete(str []byte) []byte {
+	cmd := string(str)
+
+	var ret strings.Builder // resulting string
+	// first tab
+	if tabs == 1 {
+		clear(matches)
+		find_matching(str)
+		if len(matches) == 1 { // found 1 match in builtin commands
 			l := matches[0] + " "
 			redraw([]byte(l))
 			for i := 0; i < len(matches[0]); i++ {
 				ret.WriteByte(matches[0][i])
 			}
 			ret.WriteByte(' ')
-		} else if len(matches) > 1 && tabs == 2 { // found multiple matches -> handle duplicate tabs
+		} else if len(matches) > 1 {
+			lcp := LCP()
+			fmt.Println("\r")
+			for i := 0; i < len(lcp); i++ {
+				ret.WriteByte(lcp[i])
+			}
+		}
+	} else {
+		if len(matches) > 1 {
 			fmt.Println("\r")
 			for _, i := range matches {
 				fmt.Printf("%s	", i)
@@ -113,12 +133,24 @@ func auto_complete(str []byte) []byte {
 			for i := 0; i < len(cmd); i++ {
 				ret.WriteByte(cmd[i])
 			}
-		} else { // if multiple but 1 tab || no match -> bell to ring
-			fmt.Print("\a") // bell to ring
-			for i := 0; i < len(cmd); i++ {
-				ret.WriteByte(cmd[i])
-			}
 		}
 	}
+
+	// if len(matches) > 1 && tabs == 2 { // many in builtin commands -> handle duplicated tabs
+	// 	fmt.Println("\r")
+	// 	for _, i := range matches {
+	// 		fmt.Printf("%s	", i)
+	// 	}
+	// 	fmt.Println("\r")
+	// 	for i := 0; i < len(cmd); i++ {
+	// 		ret.WriteByte(cmd[i])
+	// 	}
+	// } else {
+	// 	// if multiple but 1 tab || no match -> bell to ring
+	// 	fmt.Print("\a") // bell to ring
+	// 	for i := 0; i < len(cmd); i++ {
+	// 		ret.WriteByte(cmd[i])
+	// 	}
+	// }
 	return []byte(ret.String())
 }
