@@ -58,14 +58,33 @@ func ReadLine() string {
 }
 
 func find_fileMatching(str string) ([]Pair[string, bool], []string) {
-	files, _ := os.ReadDir(".")
+
+	var dir string
+	var prefix string
+
+	lastSlash := strings.LastIndex(str, "/")
+
+	if lastSlash == -1 {
+		dir = "."
+		prefix = str
+	} else {
+		dir = str[:lastSlash+1]
+		prefix = str[lastSlash+1:]
+	}
+	files, _ := os.ReadDir(dir)
 	var matches []Pair[string, bool]
 	var names []string
 	for _, file := range files {
-		if strings.HasPrefix(file.Name(), str) {
-			pair := Pair[string, bool]{file.Name(), file.IsDir()}
-			matches = append(matches, pair)
-			names = append(names, file.Name())
+		if strings.HasPrefix(file.Name(), prefix) {
+			if lastSlash == -1 {
+				pair := Pair[string, bool]{file.Name(), file.IsDir()}
+				matches = append(matches, pair)
+				names = append(names, file.Name())
+			} else {
+				pair := Pair[string, bool]{dir + file.Name(), file.IsDir()}
+				matches = append(matches, pair)
+				names = append(names, dir+file.Name())
+			}
 		}
 	}
 	return matches, names
@@ -128,7 +147,6 @@ func auto_complete(str []byte) []byte {
 
 			matches = find_matching(str)
 			lcp := LCP(matches)
-			// fmt.Printf("\r%s\n", lcp)
 			if len(matches) == 1 { // found 1 match in builtin commands
 				l := matches[0] + " "
 				redraw([]byte(l))
@@ -137,7 +155,6 @@ func auto_complete(str []byte) []byte {
 				}
 				ret.WriteByte(' ')
 			} else if len(matches) > 1 && len(lcp) > len(cmd) {
-				// fmt.Print(lcp)
 				for i := 0; i < len(lcp); i++ {
 					ret.WriteByte(lcp[i])
 				}
@@ -172,18 +189,14 @@ func auto_complete(str []byte) []byte {
 	completeFile := func() []byte {
 		var ret strings.Builder // resulting string
 		cmd_parts := ParseInput(strings.TrimSpace(cmd))
-		cur_F := cmd_parts[len(cmd_parts)-1]
-		cut := strings.TrimSuffix(cmd, cur_F)
-		for i := 0; i < len(cut); i++ {
-			ret.WriteByte(cut[i])
-		}
 		if tabs == 1 {
+			cur_F := cmd_parts[len(cmd_parts)-1]
+			cut := strings.TrimSuffix(cmd, cur_F)
+			for i := 0; i < len(cut); i++ {
+				ret.WriteByte(cut[i])
+			}
 			fileMatches, f_names = find_fileMatching(cur_F)
 			lcp := LCP(f_names)
-			for _, i := range fileMatches {
-				fmt.Print(i)
-
-			}
 			if len(fileMatches) == 1 {
 				var l string
 				for i := 0; i < len(fileMatches[0].f); i++ {
@@ -191,43 +204,42 @@ func auto_complete(str []byte) []byte {
 				}
 				l = strings.TrimSuffix(cmd, cur_F)
 				if fileMatches[0].s {
-					l += fileMatches[0].f + "/ "
+					l += fileMatches[0].f + "/"
 					ret.WriteByte('/')
 				} else {
 					l += fileMatches[0].f + " "
+					ret.WriteByte(' ')
 				}
 				redraw([]byte(l))
-				ret.WriteByte(' ')
 			} else if len(fileMatches) > 1 && len(lcp) > len(cur_F) {
 				for i := 0; i < len(lcp); i++ {
 					ret.WriteByte(lcp[i])
 				}
 				redraw([]byte(ret.String()))
 			} else {
+				ret.Reset()
 				for i := 0; i < len(cmd); i++ {
 					ret.WriteByte(cmd[i])
 				}
 				fmt.Print("\a") // bell to ring
 			}
 		} else {
+
+			for i := 0; i < len(cmd); i++ {
+				ret.WriteByte(cmd[i])
+			}
 			if len(fileMatches) > 1 {
 				fmt.Println("\r")
 				for _, i := range fileMatches {
 					if i.s {
-						fmt.Printf("%s/	", i.f)
+						fmt.Printf("%s/  ", i.f)
 					} else {
-						fmt.Printf("%s	", i.f)
+						fmt.Printf("%s  ", i.f)
 
 					}
 				}
 				fmt.Println("\r")
-				for i := 0; i < len(cmd); i++ {
-					ret.WriteByte(cmd[i])
-				}
 			} else {
-				for i := 0; i < len(cmd); i++ {
-					ret.WriteByte(cmd[i])
-				}
 				fmt.Print("\a") // bell to ring
 			}
 		}
