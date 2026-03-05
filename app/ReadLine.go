@@ -35,8 +35,10 @@ func ReadLine() string {
 			line = auto_complete(line)
 			if tabs == 2 {
 				tabs = 0
-				return ""
+				redraw([]byte(line))
+				// line = append(line, buf[0])
 			}
+			// fmt.Printf("\n %s \n", string(line))
 			continue
 		case 127:
 			if len(line) > 0 {
@@ -60,25 +62,30 @@ func auto_complete(str []byte) []byte {
 	cmd := string(str)
 	var ret strings.Builder // resulting string
 	var matches []string    // map [number of matching prefixes] = {strings with this count}
+
+	// Find matches in builtin commands
 	for _, com := range comm {
 		if strings.HasPrefix(com, cmd) {
 			matches = append(matches, com)
 		}
 	}
-	if len(matches) == 1 {
+	if len(matches) == 1 { // found 1 match in builtin commands
 		l := matches[0] + " "
 		redraw([]byte(l))
 		for i := 0; i < len(matches[0]); i++ {
 			ret.WriteByte(matches[0][i])
 		}
 		ret.WriteByte(' ')
-	} else if len(matches) > 1 && tabs == 2 {
+	} else if len(matches) > 1 && tabs == 2 { // many in builtin commands -> handle duplicated tabs
 		fmt.Println("\r")
 		for _, i := range matches {
 			fmt.Printf("%s	", i)
 		}
 		fmt.Println("\r")
-	} else {
+		for i := 0; i < len(cmd); i++ {
+			ret.WriteByte(cmd[i])
+		}
+	} else { // search in Executable commands
 		d := BSs(execs, cmd, 0, len(execs)-1, func(a, b string) bool {
 			return a < b
 		})
@@ -89,21 +96,25 @@ func auto_complete(str []byte) []byte {
 				matches = append(matches, com)
 			}
 		}
-		if len(matches) == 1 {
+
+		if len(matches) == 1 { // Found 1 match in Executable
 			l := matches[0] + " "
 			redraw([]byte(l))
 			for i := 0; i < len(matches[0]); i++ {
 				ret.WriteByte(matches[0][i])
 			}
 			ret.WriteByte(' ')
-		} else if len(matches) > 1 && tabs == 2 {
+		} else if len(matches) > 1 && tabs == 2 { // found multiple matches -> handle duplicate tabs
 			fmt.Println("\r")
 			for _, i := range matches {
 				fmt.Printf("%s	", i)
 			}
 			fmt.Println("\r")
-		} else {
-			fmt.Print("\a")
+			for i := 0; i < len(cmd); i++ {
+				ret.WriteByte(cmd[i])
+			}
+		} else { // if multiple but 1 tab || no match -> bell to ring
+			fmt.Print("\a") // bell to ring
 			for i := 0; i < len(cmd); i++ {
 				ret.WriteByte(cmd[i])
 			}
