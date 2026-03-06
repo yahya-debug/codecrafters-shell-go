@@ -64,7 +64,7 @@ func find_fileMatching(str string) ([]Pair[string, bool], []string) {
 
 	lastSlash := strings.LastIndex(str, "/")
 
-	if lastSlash == -1 {
+	if lastSlash == -1 || len(str) == 0 {
 		dir = "."
 		prefix = str
 	} else {
@@ -75,7 +75,7 @@ func find_fileMatching(str string) ([]Pair[string, bool], []string) {
 	var matches []Pair[string, bool]
 	var names []string
 	for _, file := range files {
-		if strings.HasPrefix(file.Name(), prefix) {
+		if strings.HasPrefix(file.Name(), prefix) || str == "" {
 			if lastSlash == -1 {
 				pair := Pair[string, bool]{file.Name(), file.IsDir()}
 				matches = append(matches, pair)
@@ -188,9 +188,12 @@ func auto_complete(str []byte) []byte {
 	// complete for file names
 	completeFile := func() []byte {
 		var ret strings.Builder // resulting string
-		cmd_parts := ParseInput(strings.TrimSpace(cmd))
+		cmd_parts := ParseInput(strings.TrimLeft(cmd, " "))
 		if tabs == 1 {
 			cur_F := cmd_parts[len(cmd_parts)-1]
+			if cmd[len(cmd)-1] == ' ' {
+				cur_F = ""
+			}
 			cut := strings.TrimSuffix(cmd, cur_F)
 			for i := 0; i < len(cut); i++ {
 				ret.WriteByte(cut[i])
@@ -246,7 +249,7 @@ func auto_complete(str []byte) []byte {
 
 		return []byte(ret.String())
 	}
-	if len(strings.Split(strings.TrimSpace(cmd), " ")) == 1 {
+	if !strings.Contains(strings.TrimLeft(cmd, " "), " ") {
 		return completeComm()
 	}
 	return completeFile()
