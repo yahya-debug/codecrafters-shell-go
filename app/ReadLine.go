@@ -214,6 +214,7 @@ func auto_complete(str []byte) []byte {
 					ret.WriteByte(' ')
 				}
 				redraw([]byte(l))
+				tabs = 0
 			} else if len(fileMatches) > 1 && len(lcp) > len(cur_F) {
 				for i := 0; i < len(lcp); i++ {
 					ret.WriteByte(lcp[i])
