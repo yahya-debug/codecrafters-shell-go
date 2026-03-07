@@ -105,7 +105,7 @@ func run(commands ...[]string) string {
 		if command == "history" {
 			if len(commands[i]) > 1 {
 				i, _ := strconv.Atoi(commands[i][1])
-				for i = len(history) - i - 1; i < len(history); i++ {
+				for i = len(history) - i; i < len(history); i++ {
 					if i >= 0 {
 						out += "  " + strconv.Itoa(i+1) + "  " + history[i] + "\n"
 					}
