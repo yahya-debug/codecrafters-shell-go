@@ -26,7 +26,7 @@ func Executable(arg string) (bool, string) {
 	return false, ""
 }
 
-var comm []string = []string{"cd", "echo", "exit", "pwd", "type"}
+var comm []string = []string{"cd", "echo", "exit", "history", "pwd", "type"}
 var execs []string
 
 func main() {
@@ -97,6 +97,13 @@ func run(commands ...[]string) string {
 					}
 				}
 				out += "\n"
+			}
+			continue
+		}
+		// History
+		if command == "history" {
+			for i := 0; i < len(history); i++ {
+				fmt.Printf("		%d	%s\n", i+1, history[i])
 			}
 			continue
 		}
