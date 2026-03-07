@@ -27,39 +27,37 @@ func getExecs() {
 	}
 }
 
-func external_command(commandLn string, in, out, errOut *os.File) {
-
-	arguments := ParseInput(commandLn)
+func external_command(commandLn []string, in, out, errOut *os.File) {
 
 	var outfile, errfile string
 	var apnd bool
-	tp := arguments[1:]
+	tp := commandLn[1:]
 
-	for i := 0; i < len(arguments); i++ {
+	for i := 0; i < len(commandLn); i++ {
 
-		if arguments[i] == ">" || arguments[i] == "2>" || arguments[i] == ">>" || arguments[i] == "2>>" {
+		if commandLn[i] == ">" || commandLn[i] == "2>" || commandLn[i] == ">>" || commandLn[i] == "2>>" {
 
-			if i+1 >= len(arguments) {
+			if i+1 >= len(commandLn) {
 				fmt.Println("syntax error near unexpected token `newline`")
 				return
 			}
 
-			if arguments[i] == ">>" || arguments[i] == "2>>" {
+			if commandLn[i] == ">>" || commandLn[i] == "2>>" {
 				apnd = true
 			}
 
-			if arguments[i] == "2>" || arguments[i] == "2>>" {
-				errfile = arguments[i+1]
+			if commandLn[i] == "2>" || commandLn[i] == "2>>" {
+				errfile = commandLn[i+1]
 			} else {
-				outfile = arguments[i+1]
+				outfile = commandLn[i+1]
 			}
 
-			tp = append(arguments[1:i], arguments[i+2:]...)
+			tp = append(commandLn[1:i], commandLn[i+2:]...)
 			break
 		}
 	}
 
-	program := exec.Command(arguments[0], tp...)
+	program := exec.Command(commandLn[0], tp...)
 
 	// use pipe/terminal passed from caller
 	program.Stdin = in

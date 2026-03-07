@@ -118,7 +118,7 @@ func run(commands ...[]string) string {
 		}
 		// Run external command
 		if ok, _ := Executable(command); ok {
-			external_command(strings.Join(commands[i], " "), os.Stdin, os.Stdout, os.Stderr)
+			external_command(commands[i], os.Stdin, os.Stdout, os.Stderr)
 			continue
 		}
 		// Not found
