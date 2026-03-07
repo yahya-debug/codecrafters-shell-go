@@ -30,91 +30,99 @@ var comm []string = []string{"cd", "echo", "exit", "pwd", "type"}
 var execs []string
 
 func main() {
-	getExecs := func() {
-		pathEnv := os.Getenv("PATH")
-		dirs := strings.Split(pathEnv, ":")
-		for _, dir := range dirs {
-			files, err := os.ReadDir(dir)
-			if err != nil {
-				continue
-			}
-			for _, f := range files {
-				info, err := f.Info()
-				if err != nil {
-					continue
-				}
-				if !info.IsDir() && info.Mode()&0111 != 0 {
-					execs = append(execs, f.Name())
-				}
-			}
-		}
-	}
+	// Get Executable eternal commands and sort them
+	// sorting will reduce time and will also help us print them in the way normal shell does
 	getExecs()
 	execs = MergeSort(execs)
-	// for _, i := range execs {
-	// 	fmt.Printf("%s ", i)
-	// }
-	// fmt.Println()
+
+	// run input and wait for user to press enter
 	for {
 		fmt.Print("$ ")
 		commandLn := ReadLine()
 		if commandLn == "" {
 			continue
 		}
-		command := ParseInput(commandLn)[0]
+		inp := ParseInput(commandLn)
+		// if
+		command := inp[0]
 		if command == "exit" || commandLn == "" {
 			break
 		}
-		if command == "echo" {
-			if idx := strings.Index(commandLn, " "); idx != -1 {
-				HandleEcho(ParseInput(commandLn[idx+1:]))
+		var args [][]string
+		l := 0
+		for i := 0; i < len(inp); i++ {
+			if inp[i] == "|" && i > 0 {
+				args = append(args, inp[l:i])
+				l = i + 1
 			}
+		}
+		if inp[len(inp)-1] != "|" {
+			args = append(args, inp[l:])
+		}
+		fmt.Print(run(args...))
+	}
+}
+
+// here we run commands
+func run(commands ...[]string) string {
+	var out string
+	if len(commands) > 1 {
+		runPipeline(commands...)
+		return ""
+	}
+
+	for i := 0; i < len(commands); i++ {
+		command := commands[i][0]
+		// Type command
+		if command == "echo" {
+			HandleEcho(commands[i][1:])
 			continue
 		}
-
-		// Type command
 		if command == "type" {
 			comp := func(a, b string) bool {
 				return a < b
 			}
 			// Built in
-			arg := strings.ToLower(strings.TrimSpace(strings.Split(commandLn, " ")[1]))
-			if _, ch := BS(comm, arg, 0, len(comm)-1, comp); ch {
-				fmt.Printf("%s is a shell builtin", arg)
-			} else {
-				// Search for executable files using PATH.
-				ch, path := Executable(arg)
-				if ch {
-					fmt.Printf("%s is %s", arg, path)
+			for j := 1; j < len(commands[i]); j++ {
+				arg := strings.TrimSpace(commands[i][j])
+				if _, ch := BS(comm, arg, 0, len(comm)-1, comp); ch {
+					out += arg + " is a shell builtin"
 				} else {
-					fmt.Printf("%s: not found", strings.ToLower(strings.TrimSpace(strings.Split(commandLn, " ")[1])))
+					// Search for executable files using PATH.
+					ch, path := Executable(arg)
+					if ch {
+						out += arg + " is " + path
+					} else {
+						out += commands[i][j] + ": not found"
+					}
 				}
+				out += "\n"
 			}
-			fmt.Println()
 			continue
 		}
 		// get working directory
 		if command == "pwd" {
 			if pwd, err := os.Getwd(); err == nil {
-				fmt.Println(pwd)
+				out += pwd + "\n"
 			}
 			continue
 		}
 		// Handle absolute path
 		if command == "cd" {
-			arg := strings.TrimSpace(strings.Split(commandLn, " ")[1])
+			arg := ParseInput(strings.Join(commands[i], " "))[1]
 			d := HandleCD(arg)
 			if !d {
-				fmt.Printf("\rcd: %s: No such file or directory\n", arg)
+				out += "cd: + " + arg + ": No such file or directory\n"
 			}
 			continue
 		}
 		// Run external command
 		if ok, _ := Executable(command); ok {
-			external_command(commandLn)
+			external_command(strings.Join(commands[i], " "), os.Stdin, os.Stdout, os.Stderr)
 			continue
 		}
 		// Not found
-		fmt.Printf("\r%s: command not found\n", command)
+		out += command + ": command not found\n"
 	}
+	return out
 }

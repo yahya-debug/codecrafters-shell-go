@@ -11,10 +11,53 @@ import (
 const prompt = "$ "
 
 var tabs int = 0
+var cursor int = 0
 
-func redraw(line []byte) {
+var history []string
+var histIndex int = -1
+
+func redraw(line []byte, toEnd bool) {
 	fmt.Print("\r\033[K")
 	fmt.Printf("%s%s", prompt, line)
+	var cur int
+	if cursor < len(line) {
+		cur = len(line)
+	} else {
+		cursor = len(line)
+	}
+	if toEnd {
+		for cursor < len(line) && cur < len(line) {
+			fmt.Printf("%c%c%c", 27, 91, 67)
+			cur++
+		}
+	} else {
+		for cursor < cur && cur > 0 {
+			fmt.Printf("%c%c%c", 27, 91, 68)
+			cur--
+		}
+	}
+}
+
+func historyPrev() string {
+	if len(history) == 0 || histIndex == -1 {
+		return ""
+	}
+	if histIndex > 0 {
+		histIndex--
+	}
+	return history[histIndex]
+}
+func historyNext() string {
+	if len(history) == 0 {
+		return ""
+	}
+	if histIndex < len(history)-1 {
+		histIndex++
+	} else {
+		histIndex++
+		return ""
+	}
+	return history[histIndex]
 }
 
 func ReadLine() string {
@@ -29,28 +72,74 @@ func ReadLine() string {
 			fmt.Println()
 			fmt.Print("\r")
 			tabs = 0
+			cursor = 0
+			if strings.TrimRight(string(line), "\r\n") != "" {
+				history = append(history, strings.TrimRight(string(line), "\r\n"))
+				histIndex = len(history)
+			}
 			return strings.TrimRight(string(line), "\r\n")
 		case '\t':
 			tabs++
 			line = auto_complete(line)
 			if tabs == 2 {
 				tabs = 0
-				redraw([]byte(line))
-				// line = append(line, buf[0])
+				redraw([]byte(line), true)
 			}
-			// fmt.Printf("\n %s \n", string(line))
+			cursor = len(line)
 			continue
 		case 127:
-			if len(line) > 0 {
-				line = line[:len(line)-1]
-				redraw(line)
+			if cursor == 0 {
+				fmt.Print("\a") // bell to ring
+			} else if cursor > 0 {
+				line = []byte(string(line[:cursor-1]) + string(line[cursor:]))
+				cursor--
+				redraw(line, false)
+			}
+		case 27: // ESC
+			seq := make([]byte, 2)
+			os.Stdin.Read(seq)
+
+			if seq[0] == '[' {
+				switch seq[1] {
+				case 'A': // UP
+					line = []byte(historyPrev())
+					cursor = len(line)
+					if strings.TrimSpace(string(line)) == "" {
+						fmt.Print("\a") // bell to ring
+					} else {
+						redraw(line, true)
+					}
+				case 'B': // DOWN
+					line = []byte(historyNext())
+					cursor = len(line)
+					if len(history) != 0 {
+						redraw(line, true)
+					}
+				case 'C': // RIGHT
+					if cursor == len(line) {
+						fmt.Print("\a") // bell to ring
+					} else {
+						cursor++
+						fmt.Printf("%c%c%c", buf[0], seq[0], seq[1])
+					}
+
+				case 'D': // LEFT
+					if cursor == 0 {
+						fmt.Print("\a") // bell to ring
+					} else {
+						cursor--
+						fmt.Printf("%c%c%c", buf[0], seq[0], seq[1])
+					}
+
+				}
 			}
 		case 3: // Ctrl+C
 			fmt.Println()
 			fmt.Print("\r")
 			return "exit"
 		default:
-			line = append(line, buf[0])
+			line = append(line[:cursor], append([]byte{buf[0]}, line[cursor:]...)...)
+			cursor++
 			fmt.Printf("%c", buf[0])
 		}
 		tabs = 0
@@ -149,7 +238,8 @@ func auto_complete(str []byte) []byte {
 			lcp := LCP(matches)
 			if len(matches) == 1 { // found 1 match in builtin commands
 				l := matches[0] + " "
-				redraw([]byte(l))
+				cursor = len(l)
+				redraw([]byte(l), true)
 				for i := 0; i < len(matches[0]); i++ {
 					ret.WriteByte(matches[0][i])
 				}
@@ -158,7 +248,7 @@ func auto_complete(str []byte) []byte {
 				for i := 0; i < len(lcp); i++ {
 					ret.WriteByte(lcp[i])
 				}
-				redraw([]byte(ret.String()))
+				redraw([]byte(ret.String()), true)
 			} else {
 				for i := 0; i < len(cmd); i++ {
 					ret.WriteByte(cmd[i])
@@ -213,13 +303,14 @@ func auto_complete(str []byte) []byte {
 					l += fileMatches[0].f + " "
 					ret.WriteByte(' ')
 				}
-				redraw([]byte(l))
+				cursor = len(l)
+				redraw([]byte(l), true)
 				tabs = 0
 			} else if len(fileMatches) > 1 && len(lcp) > len(cur_F) {
 				for i := 0; i < len(lcp); i++ {
 					ret.WriteByte(lcp[i])
 				}
-				redraw([]byte(ret.String()))
+				redraw([]byte(ret.String()), true)
 			} else {
 				ret.Reset()
 				for i := 0; i < len(cmd); i++ {

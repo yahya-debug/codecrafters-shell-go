@@ -34,6 +34,15 @@ func ParseInput(str string) []string {
 				}
 				continue
 			}
+		case '|':
+			if !inSingle && !inDouble {
+				if cur.Len() > 0 {
+					res = append(res, cur.String())
+					cur.Reset()
+				}
+				res = append(res, "|")
+			}
+			continue
 		case '>':
 			if !inSingle && !inDouble {
 				if cur.Len() > 0 {
