@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 )
 
@@ -59,7 +60,7 @@ func main() {
 		if inp[len(inp)-1] != "|" {
 			args = append(args, inp[l:])
 		}
-		fmt.Print(run(args...))
+		fmt.Print("\r" + run(args...))
 	}
 }
 
@@ -102,8 +103,17 @@ func run(commands ...[]string) string {
 		}
 		// History
 		if command == "history" {
-			for i := 0; i < len(history); i++ {
-				fmt.Printf("		%d	%s\n", i+1, history[i])
+			if len(commands[i]) > 1 {
+				i, _ := strconv.Atoi(commands[i][1])
+				for i = len(history) - i - 1; i < len(history); i++ {
+					if i >= 0 {
+						out += "  " + strconv.Itoa(i+1) + "  " + history[i] + "\n"
+					}
+				}
+			} else {
+				for i := 0; i < len(history); i++ {
+					out += "  " + strconv.Itoa(i+1) + "  " + history[i] + "\n"
+				}
 			}
 			continue
 		}
