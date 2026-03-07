@@ -66,7 +66,39 @@ func runPipeline(commands ...[]string) {
 
 			continue
 		}
+		if cmdName == "type" {
 
+			old := os.Stdout
+			os.Stdout = out
+
+			comp := func(a, b string) bool {
+				return a < b
+			}
+
+			for j := 1; j < len(commands[i]); j++ {
+
+				arg := strings.TrimSpace(commands[i][j])
+
+				if _, ch := BS(comm, arg, 0, len(comm)-1, comp); ch {
+					println(arg + " is a shell builtin")
+				} else {
+					ch, path := Executable(arg)
+					if ch {
+						println(arg + " is " + path)
+					} else {
+						println(arg + ": not found")
+					}
+				}
+			}
+
+			os.Stdout = old
+
+			if out != os.Stdout {
+				out.Close()
+			}
+
+			continue
+		}
 		// ---------- EXTERNAL ----------
 		cmd := exec.Command(commands[i][0], commands[i][1:]...)
 
