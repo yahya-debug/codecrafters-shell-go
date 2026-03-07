@@ -72,7 +72,7 @@ func run(commands ...[]string) string {
 	}
 
 	for i := 0; i < len(commands); i++ {
-		command := commands[i][0]
+		command := strings.TrimSpace(commands[i][0])
 		// Type command
 		if command == "echo" {
 			HandleEcho(commands[i][1:])
@@ -112,7 +112,7 @@ func run(commands ...[]string) string {
 			arg := ParseInput(strings.Join(commands[i], " "))[1]
 			d := HandleCD(arg)
 			if !d {
-				out += "cd: + " + arg + ": No such file or directory\n"
+				out += "cd: " + arg + ": No such file or directory\n"
 			}
 			continue
 		}

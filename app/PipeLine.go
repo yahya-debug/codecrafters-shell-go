@@ -3,6 +3,7 @@ package main
 import (
 	"os"
 	"os/exec"
+	"strings"
 )
 
 func runPipeline(commands ...[]string) {
@@ -31,7 +32,7 @@ func runPipeline(commands ...[]string) {
 			prevReader = r
 		}
 
-		cmdName := commands[i][0]
+		cmdName := strings.TrimSpace(commands[i][0])
 
 		// ---------- BUILTINS ----------
 		if cmdName == "echo" {
