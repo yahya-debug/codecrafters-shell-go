@@ -1,7 +1,4 @@
-asdfsa
-rfsfs
-sdsds
-fdf
-sds
-dsds
-sds
+cd ..
+cd app/
+history 
+history -w file.txt 

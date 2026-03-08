@@ -131,12 +131,24 @@ func run(commands ...[]string) string {
 						if err != nil {
 							continue
 						}
+						defer file.Close()
 						file_reader := bufio.NewScanner(file)
 						for file_reader.Scan() {
 							line := file_reader.Text()
 							history = append(history, line)
 						}
 					}
+				case "-w":
+					file, err := os.OpenFile(commands[i][2], os.O_CREATE|os.O_WRONLY, 0644)
+					if err != nil {
+						continue
+					}
+					defer file.Close()
+					file_writer := bufio.NewWriter(file)
+					for _, com := range history {
+						file_writer.WriteString(com + "\n")
+					}
+					file_writer.Flush()
 				}
 			}
 			continue
