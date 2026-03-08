@@ -138,18 +138,11 @@ func run(commands ...[]string) string {
 							history = append(history, line)
 						}
 					}
-				case "-w", "-a":
+				case "-w":
 					if len(commands[i]) < 3 {
 						continue
 					}
-					var file *os.File
-					var err error
-					// change the flags based on the mode we are using
-					if ch == "-w" {
-						file, err = os.OpenFile(commands[i][2], os.O_CREATE|os.O_WRONLY, 0644)
-					} else {
-						file, err = os.OpenFile(commands[i][2], os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
-					}
+					file, err := os.OpenFile(commands[i][2], os.O_CREATE|os.O_WRONLY, 0644)
 					if err != nil {
 						continue
 					}
@@ -158,6 +151,21 @@ func run(commands ...[]string) string {
 					for _, com := range history {
 						file_writer.WriteString(com + "\n")
 					}
+					file_writer.Flush()
+				case "-a":
+					if len(commands[i]) < 3 {
+						continue
+					}
+					file, err := os.OpenFile(commands[i][2], os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
+					if err != nil {
+						continue
+					}
+					defer file.Close()
+					file_writer := bufio.NewWriter(file)
+					for i := l_append; i < len(history); i++ {
+						file_writer.WriteString(history[i] + "\n")
+					}
+					l_append = len(history)
 					file_writer.Flush()
 				}
 			}

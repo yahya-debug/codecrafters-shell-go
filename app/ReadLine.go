@@ -15,6 +15,7 @@ var cursor int = 0
 
 var history []string
 var histIndex int = -1
+var l_append int = 0
 
 func redraw(line []byte, toEnd bool) {
 	fmt.Print("\r\033[K")
