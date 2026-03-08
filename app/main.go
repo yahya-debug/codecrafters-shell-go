@@ -138,8 +138,18 @@ func run(commands ...[]string) string {
 							history = append(history, line)
 						}
 					}
-				case "-w":
-					file, err := os.OpenFile(commands[i][2], os.O_CREATE|os.O_WRONLY, 0644)
+				case "-w", "-a":
+					if len(commands[i]) < 3 {
+						continue
+					}
+					var file *os.File
+					var err error
+					// change the flags based on the mode we are using
+					if ch == "-w" {
+						file, err = os.OpenFile(commands[i][2], os.O_CREATE|os.O_WRONLY, 0644)
+					} else {
+						file, err = os.OpenFile(commands[i][2], os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
+					}
 					if err != nil {
 						continue
 					}
