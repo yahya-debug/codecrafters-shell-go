@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -103,16 +104,39 @@ func run(commands ...[]string) string {
 		}
 		// History
 		if command == "history" {
+			var err error
 			if len(commands[i]) > 1 {
-				i, _ := strconv.Atoi(commands[i][1])
+				_, err = strconv.Atoi(commands[i][1])
+			} else {
+				err = nil
+			}
+			if len(commands[i]) <= 2 && err == nil {
+				var i int
+				if len(commands[i]) == 1 { // Deafault -> print all history
+					i = len(history)
+				} else { // If user specified a number to print history items as much as it
+					i, _ = strconv.Atoi(commands[i][1])
+				}
 				for i = len(history) - i; i < len(history); i++ {
 					if i >= 0 {
 						out += "  " + strconv.Itoa(i+1) + "  " + history[i] + "\n"
 					}
 				}
 			} else {
-				for i := 0; i < len(history); i++ {
-					out += "  " + strconv.Itoa(i+1) + "  " + history[i] + "\n"
+				ch := commands[i][1]
+				switch ch {
+				case "-r":
+					if len(commands[i]) >= 3 {
+						file, err := os.OpenFile(commands[i][2], os.O_CREATE|os.O_RDONLY, 0644)
+						if err != nil {
+							continue
+						}
+						file_reader := bufio.NewScanner(file)
+						for file_reader.Scan() {
+							line := file_reader.Text()
+							history = append(history, line)
+						}
+					}
 				}
 			}
 			continue
