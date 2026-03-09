@@ -54,6 +54,7 @@ func main() {
 		// if
 		command := inp[0]
 		if command == "exit" || commandLn == "" {
+			WriteHist(hist_def_file)
 			break
 		}
 		var args [][]string
