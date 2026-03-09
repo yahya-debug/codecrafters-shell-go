@@ -32,6 +32,12 @@ var comm []string = []string{"cd", "echo", "exit", "history", "pwd", "type"}
 var execs []string
 
 func main() {
+	// Set Defaults
+	hist_def_file := os.Getenv("HISTFILE")
+	if hist_def_file != "" {
+		ReadHist(hist_def_file)
+	}
+
 	// Get Executable eternal commands and sort them
 	// sorting will reduce time and will also help us print them in the way normal shell does
 	getExecs()
@@ -127,31 +133,13 @@ func run(commands ...[]string) string {
 				switch ch {
 				case "-r":
 					if len(commands[i]) >= 3 {
-						file, err := os.OpenFile(commands[i][2], os.O_CREATE|os.O_RDONLY, 0644)
-						if err != nil {
-							continue
-						}
-						defer file.Close()
-						file_reader := bufio.NewScanner(file)
-						for file_reader.Scan() {
-							line := file_reader.Text()
-							history = append(history, line)
-						}
+						ReadHist(commands[i][2])
 					}
 				case "-w":
 					if len(commands[i]) < 3 {
 						continue
 					}
-					file, err := os.OpenFile(commands[i][2], os.O_CREATE|os.O_WRONLY, 0644)
-					if err != nil {
-						continue
-					}
-					defer file.Close()
-					file_writer := bufio.NewWriter(file)
-					for _, com := range history {
-						file_writer.WriteString(com + "\n")
-					}
-					file_writer.Flush()
+					WriteHist(commands[i][2])
 				case "-a":
 					if len(commands[i]) < 3 {
 						continue

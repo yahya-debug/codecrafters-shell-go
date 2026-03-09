@@ -13,10 +13,6 @@ const prompt = "$ "
 var tabs int = 0
 var cursor int = 0
 
-var history []string
-var histIndex int = -1
-var l_append int = 0
-
 func redraw(line []byte, toEnd bool) {
 	fmt.Print("\r\033[K")
 	fmt.Printf("%s%s", prompt, line)
@@ -37,28 +33,6 @@ func redraw(line []byte, toEnd bool) {
 			cur--
 		}
 	}
-}
-
-func historyPrev() string {
-	if len(history) == 0 || histIndex == -1 {
-		return ""
-	}
-	if histIndex > 0 {
-		histIndex--
-	}
-	return history[histIndex]
-}
-func historyNext() string {
-	if len(history) == 0 {
-		return ""
-	}
-	if histIndex < len(history)-1 {
-		histIndex++
-	} else {
-		histIndex++
-		return ""
-	}
-	return history[histIndex]
 }
 
 func ReadLine() string {
