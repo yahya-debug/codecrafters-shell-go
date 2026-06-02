@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -56,6 +57,23 @@ func main() {
 		if command == "exit" || commandLn == "" {
 			WriteHist(hist_def_file)
 			break
+		}
+		if inp[len(inp)-1] == "&" {
+			runInst := exec.Command(inp[0], inp[1:len(inp)-1]...)
+			err := runInst.Start()
+			if err != nil {
+				return
+			}
+
+			newJob := &Job{inp[:len(inp)-1], runInst.Process.Pid, runInst, false}
+			addJob(newJob)
+
+			go func(J *Job) { // run in background, line by line block by block then changes the status of completion
+				_ = J.process.Wait()
+				J.completed = true
+			}(newJob)
+
+			continue
 		}
 		var args [][]string
 		l := 0
@@ -178,6 +196,10 @@ func run(commands ...[]string) string {
 		}
 		// jobs
 		if command == "jobs" {
+			allJobs := showJobs()
+			for i := len(allJobs) - 1; i >= 0; i-- {
+				out += allJobs[i]
+			}
 			continue
 		}
 		// Run external command
