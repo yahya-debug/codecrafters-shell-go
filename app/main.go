@@ -67,7 +67,7 @@ func main() {
 
 			newJob := &Job{inp[:len(inp)-1], runInst.Process.Pid, runInst, false}
 			r := addJob(newJob)
-			fmt.Print("\r[" + strconv.Itoa(r) + "]\t" + strconv.Itoa(runInst.Process.Pid) + "\n")
+			fmt.Print("\r[" + strconv.Itoa(r) + "] " + strconv.Itoa(runInst.Process.Pid) + "\n")
 
 			go func(J *Job) { // run in background, line by line block by block then changes the status of completion
 				_ = J.process.Wait()
