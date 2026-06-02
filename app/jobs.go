@@ -15,8 +15,9 @@ type Job struct {
 	completed bool
 }
 
-func addJob(J *Job) {
+func addJob(J *Job) int {
 	jobs = append(jobs, J)
+	return len(jobs)
 }
 
 func showJobs() []string {
