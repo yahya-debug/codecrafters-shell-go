@@ -28,7 +28,7 @@ func Executable(arg string) (bool, string) {
 	return false, ""
 }
 
-var comm []string = []string{"cd", "echo", "exit", "history", "pwd", "type"}
+var comm []string = []string{"cd", "echo", "exit", "history", "jobs", "pwd", "type"}
 var execs []string
 
 func main() {
@@ -174,6 +174,10 @@ func run(commands ...[]string) string {
 			if !d {
 				out += "cd: " + arg + ": No such file or directory\n"
 			}
+			continue
+		}
+		// jobs
+		if command == "jobs" {
 			continue
 		}
 		// Run external command
