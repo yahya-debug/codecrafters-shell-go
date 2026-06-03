@@ -5,10 +5,11 @@ import (
 )
 
 // Parse input to split the arguments using '"' '\” '>'
-func ParseInput(str string) []string {
+func ParseInput(str string) ([]string, bool) {
 	var res []string
 	var cur strings.Builder
 	var inSingle, inDouble bool = false, false
+	multi := false
 	for i := 0; i < len(str); i++ {
 		if !inSingle && i < len(str)-1 && str[i] == '\\' {
 			cur.WriteByte(str[i+1])
@@ -57,6 +58,15 @@ func ParseInput(str string) []string {
 			}
 			res = append(res, ">")
 			continue
+		case '&':
+			if !inSingle && !inDouble {
+				if i < len(str)-1 && str[i+1] == '&' {
+					res = append(res, "&&")
+					multi = true
+					i++
+					continue
+				}
+			}
 		case '1':
 			if i < len(str)-1 && str[i+1] == '>' {
 				if cur.Len() > 0 {
@@ -65,6 +75,7 @@ func ParseInput(str string) []string {
 				}
 				continue
 			}
+			continue
 		case '2':
 			if i < len(str)-2 && str[i+1] == '>' && str[i+2] == '>' {
 				if cur.Len() > 0 {
@@ -90,5 +101,5 @@ func ParseInput(str string) []string {
 	if cur.Len() > 0 {
 		res = append(res, cur.String())
 	}
-	return res
+	return res, multi
 }

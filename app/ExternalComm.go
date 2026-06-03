@@ -27,7 +27,7 @@ func getExecs() {
 	}
 }
 
-func external_command(commandLn []string, in, out, errOut *os.File) {
+func external_command(commandLn []string, in, out, errOut *os.File) bool {
 
 	var outfile, errfile string
 	var apnd bool
@@ -39,7 +39,7 @@ func external_command(commandLn []string, in, out, errOut *os.File) {
 
 			if i+1 >= len(commandLn) {
 				fmt.Println("syntax error near unexpected token `newline`")
-				return
+				return false
 			}
 
 			if commandLn[i] == ">>" || commandLn[i] == "2>>" {
@@ -78,7 +78,7 @@ func external_command(commandLn []string, in, out, errOut *os.File) {
 
 		if err != nil {
 			fmt.Println(err)
-			return
+			return false
 		}
 
 		defer f.Close()
@@ -99,12 +99,18 @@ func external_command(commandLn []string, in, out, errOut *os.File) {
 
 		if err != nil {
 			fmt.Println(err)
-			return
+			return false
 		}
 
 		defer f.Close()
 		program.Stderr = f
 	}
 
-	_ = program.Run()
+	err := program.Run()
+	if err != nil {
+		// This line will tell you EXACTLY why sleep is failing instantly
+		fmt.Printf("\n[Debug] Command failed: %v\n", err)
+		return false
+	}
+	return true
 }

@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"fmt"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -31,10 +30,10 @@ func Executable(arg string) (bool, string) {
 
 var comm []string = []string{"cd", "echo", "exit", "history", "jobs", "pwd", "type"}
 var execs []string
+var hist_def_file = os.Getenv("HISTFILE")
 
 func main() {
 	// Set Defaults
-	hist_def_file := os.Getenv("HISTFILE")
 	if hist_def_file != "" {
 		ReadHist(hist_def_file)
 	}
@@ -43,61 +42,78 @@ func main() {
 	// sorting will reduce time and will also help us print them in the way normal shell does
 	getExecs()
 	execs = MergeSort(execs)
-
+	alive := true
 	// run input and wait for user to press enter
 	for {
+		if !alive {
+			break
+		}
 		fmt.Print("$ ")
 		commandLn := ReadLine()
 		if commandLn == "" {
 			continue
 		}
-		inp := ParseInput(commandLn)
-		// if
-		command := inp[0]
-		if command == "exit" || commandLn == "" {
-			WriteHist(hist_def_file)
-			break
-		}
-		if inp[len(inp)-1] == "&" {
-			runInst := exec.Command(inp[0], inp[1:len(inp)-1]...)
-			err := runInst.Start()
-			if err != nil {
-				return
-			}
-
-			newJob := &Job{inp[:len(inp)-1], runInst.Process.Pid, runInst, false}
-			r := addJob(newJob)
-			fmt.Print("\r[" + strconv.Itoa(r) + "] " + strconv.Itoa(runInst.Process.Pid) + "\n")
-
-			go func(J *Job) { // run in background, line by line block by block then changes the status of completion
-				_ = J.process.Wait()
-				J.completed = true
-			}(newJob)
-
-			continue
-		}
-		var args [][]string
-		l := 0
-		for i := 0; i < len(inp); i++ {
-			if inp[i] == "|" && i > 0 {
-				args = append(args, inp[l:i])
-				l = i + 1
+		inp, multi := ParseInput(commandLn)
+		if multi {
+			if inp[len(inp)-1] != "&" {
+				var inps [][]string
+				l := 0
+				for i := 0; i < len(inp); i++ {
+					if inp[i] == "&&" {
+						inps = append(inps, inp[l:i])
+						l = i + 1
+					}
+				}
+				inps = append(inps, inp[l:])
+				for i := 0; i < len(inps); i++ {
+					var success bool
+					alive, success = processLine(inps[i])
+					if !alive || !success {
+						break
+					}
+				}
+				continue
 			}
 		}
-		if inp[len(inp)-1] != "|" {
-			args = append(args, inp[l:])
-		}
-		fmt.Print("\r" + run(args...))
+		alive, _ = processLine(inp)
 	}
 }
 
+func processLine(inp []string) (bool, bool) {
+	command := inp[0]
+	if command == "exit" {
+		WriteHist(hist_def_file)
+		return false, true
+	}
+
+	if inp[len(inp)-1] == "&" {
+		jobRun(inp[:len(inp)-1])
+		return true, true
+	}
+	var args [][]string
+	l := 0
+	for i := 0; i < len(inp); i++ {
+		if inp[i] == "|" && i > 0 {
+			args = append(args, inp[l:i])
+			l = i + 1
+		}
+	}
+	if inp[len(inp)-1] != "|" {
+		args = append(args, inp[l:])
+	}
+	out, success := run(args...)
+	fmt.Print("\r" + out)
+	return true, success
+}
+
 // here we run commands
-func run(commands ...[]string) string {
+func run(commands ...[]string) (string, bool) {
 	var out string
 	if len(commands) > 1 {
 		runPipeline(commands...)
-		return ""
+		return "", true
 	}
+	success := true
 
 	for i := 0; i < len(commands); i++ {
 		command := strings.TrimSpace(commands[i][0])
@@ -188,10 +204,11 @@ func run(commands ...[]string) string {
 		}
 		// Handle absolute path
 		if command == "cd" {
-			arg := ParseInput(strings.Join(commands[i], " "))[1]
-			d := HandleCD(arg)
-			if !d {
+			arg_, _ := ParseInput(strings.Join(commands[i], " "))
+			arg := arg_[1]
+			if !HandleCD(arg) {
 				out += "cd: " + arg + ": No such file or directory\n"
+				success = false
 			}
 			continue
 		}
@@ -205,11 +222,14 @@ func run(commands ...[]string) string {
 		}
 		// Run external command
 		if ok, _ := Executable(command); ok {
-			external_command(commands[i], os.Stdin, os.Stdout, os.Stderr)
+			if !external_command(commands[i], os.Stdin, os.Stdout, os.Stderr) {
+				success = false
+			}
 			continue
 		}
 		// Not found
 		out += command + ": command not found\n"
+		success = false
 	}
-	return out
+	return out, success
 }

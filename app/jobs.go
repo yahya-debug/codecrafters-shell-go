@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+	"os"
 	"os/exec"
 	"strconv"
 	"strings"
@@ -13,6 +15,26 @@ type Job struct {
 	PID       int
 	process   *exec.Cmd
 	completed bool
+}
+
+func jobRun(inp []string) {
+	runInst := exec.Command("bash", "-c", strings.Join(inp, " "))
+	runInst.Stdin = os.Stdin
+	runInst.Stdout = os.Stdout
+	runInst.Stderr = os.Stderr
+	err := runInst.Start()
+	if err != nil {
+		return
+	}
+
+	newJob := &Job{inp, runInst.Process.Pid, runInst, false}
+	r := addJob(newJob)
+	fmt.Print("\r[" + strconv.Itoa(r) + "] " + strconv.Itoa(runInst.Process.Pid) + "\n")
+
+	go func(J *Job) { // run in background, line by line block by block then changes the status of completion
+		_ = J.process.Wait()
+		J.completed = true
+	}(newJob)
 }
 
 func addJob(J *Job) int {

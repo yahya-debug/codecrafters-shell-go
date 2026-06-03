@@ -253,7 +253,7 @@ func auto_complete(str []byte) []byte {
 	// complete for file names
 	completeFile := func() []byte {
 		var ret strings.Builder // resulting string
-		cmd_parts := ParseInput(strings.TrimLeft(cmd, " "))
+		cmd_parts, _ := ParseInput(strings.TrimLeft(cmd, " "))
 		if tabs == 1 {
 			cur_F := cmd_parts[len(cmd_parts)-1]
 			if cmd[len(cmd)-1] == ' ' {
