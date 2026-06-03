@@ -26,7 +26,12 @@ func jobRun(inp []string) {
 	if err != nil {
 		return
 	}
-	fmt.Print("\r[" + strconv.Itoa(len(jobs)+1) + "] " + strconv.Itoa(runInst.Process.Pid) + "\n")
+
+	pid := runInst.Process.Pid
+
+	// Format your job tracking UI
+	jobNum := len(jobs) + 1
+	fmt.Printf("\r[%d] %d\n", jobNum, pid)
 
 	newJob := &Job{inp, runInst.Process.Pid, runInst, false}
 	_ = addJob(newJob)
