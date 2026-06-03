@@ -29,7 +29,7 @@ func jobRun(inp []string) {
 	}
 
 	newJob := &Job{inp, runInst.Process.Pid, runInst, false}
-	r := addJob(newJob)
+	_ = addJob(newJob)
 
 	go func(J *Job) { // run in background, line by line block by block then changes the status of completion
 		_ = J.process.Wait()
