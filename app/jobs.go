@@ -23,10 +23,10 @@ func jobRun(inp []string) {
 	runInst.Stdout = os.Stdout
 	runInst.Stderr = os.Stderr
 	err := runInst.Start()
-	fmt.Print("\r[" + strconv.Itoa(len(jobs)+1) + "] " + strconv.Itoa(runInst.Process.Pid) + "\n")
 	if err != nil {
 		return
 	}
+	fmt.Print("\r[" + strconv.Itoa(len(jobs)+1) + "] " + strconv.Itoa(runInst.Process.Pid) + "\n")
 
 	newJob := &Job{inp, runInst.Process.Pid, runInst, false}
 	_ = addJob(newJob)
