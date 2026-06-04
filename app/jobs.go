@@ -26,7 +26,7 @@ func jobRun(inp []string) {
 	if err != nil {
 		return
 	}
-	fmt.Printf("\r[%d] %d\n", len(jobs)+1, runInst.Process.Pid)
+	fmt.Printf("[%d] %d\n", len(jobs)+1, runInst.Process.Pid)
 
 	newJob := &Job{inp, runInst.Process.Pid, runInst, false}
 	_ = addJob(newJob)
