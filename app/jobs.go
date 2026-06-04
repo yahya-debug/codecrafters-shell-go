@@ -19,7 +19,6 @@ type Job struct {
 
 func jobRun(inp []string) {
 	runInst := exec.Command("bash", "-c", strings.Join(inp, " "))
-	runInst.Stdin = os.Stdin
 	runInst.Stdout = os.Stdout
 	runInst.Stderr = os.Stderr
 	err := runInst.Start()
@@ -27,6 +26,8 @@ func jobRun(inp []string) {
 		return
 	}
 	fmt.Printf("[%d] %d\n", len(jobs)+1, runInst.Process.Pid)
+
+	os.Stdout.Sync()
 
 	newJob := &Job{inp, runInst.Process.Pid, runInst, false}
 	_ = addJob(newJob)
