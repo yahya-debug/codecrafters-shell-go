@@ -11,6 +11,7 @@ import (
 var jobs []*Job
 
 type Job struct {
+	order     int
 	command   []string
 	PID       int
 	process   *exec.Cmd
@@ -26,14 +27,21 @@ func jobRun(inp []string) {
 	runInst.Stderr = os.Stderr
 	err := runInst.Start()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "%s: command not found\n", inp[0])
 		return
 	}
-	fmt.Printf("[%d] %d\n", len(jobs)+1, runInst.Process.Pid)
+
+	var ord int
+	if len(jobs) == 0 {
+		ord = 1
+	} else {
+		ord = jobs[len(jobs)-1].order + 1
+	}
+
+	fmt.Printf("[%d] %d\n", ord, runInst.Process.Pid)
 
 	os.Stdout.Sync()
 
-	newJob := &Job{inp, runInst.Process.Pid, runInst, false}
+	newJob := &Job{ord, inp, runInst.Process.Pid, runInst, false}
 	_ = addJob(newJob)
 
 	go func(J *Job) { // run in background, line by line block by block then changes the status of completion
