@@ -18,11 +18,15 @@ type Job struct {
 }
 
 func jobRun(inp []string) {
-	runInst := exec.Command("bash", "-c", strings.Join(inp, " "))
+	if len(inp) == 0 {
+		return
+	}
+	runInst := exec.Command(inp[0], inp[1:]...)
 	runInst.Stdout = os.Stdout
 	runInst.Stderr = os.Stderr
 	err := runInst.Start()
 	if err != nil {
+		fmt.Fprintf(os.Stderr, "%s: command not found\n", inp[0])
 		return
 	}
 	fmt.Printf("[%d] %d\n", len(jobs)+1, runInst.Process.Pid)

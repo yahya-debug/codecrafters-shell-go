@@ -108,8 +108,6 @@ func external_command(commandLn []string, in, out, errOut *os.File) bool {
 
 	err := program.Run()
 	if err != nil {
-		// This line will tell you EXACTLY why sleep is failing instantly
-		fmt.Printf("\n[Debug] Command failed: %v\n", err)
 		return false
 	}
 	return true
