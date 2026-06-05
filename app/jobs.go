@@ -50,14 +50,15 @@ func addJob(J *Job) int {
 func showJobs() []string {
 	var all []string
 	var line strings.Builder
-	for i := len(jobs) - 1; i >= 0; i-- {
+	sz := len(jobs) - 1
+	for i := sz; i >= 0; i-- {
 		symb := "  "
 		stat := "Running"
 		r := i + 1
 
-		if i == len(jobs)-1 {
+		if i == sz {
 			symb = "+  "
-		} else if i == len(jobs)-2 {
+		} else if i == sz-1 {
 			symb = "-  "
 		}
 
@@ -65,7 +66,12 @@ func showJobs() []string {
 			stat = "Done"
 		}
 
-		line.WriteString("[" + strconv.Itoa(r) + "]" + symb + stat + "\t\t" + strings.Join(jobs[i].command, " ") + "\n")
+		commandStr := strings.Join(jobs[i].command, " ") + " &"
+		if stat != "Running" {
+			commandStr = strings.TrimSpace(commandStr)
+		}
+
+		line.WriteString("[" + strconv.Itoa(r) + "]" + symb + stat + "\t\t" + commandStr + "\n")
 		all = append(all, line.String())
 		line.Reset()
 
