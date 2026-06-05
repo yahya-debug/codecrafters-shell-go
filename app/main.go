@@ -214,7 +214,7 @@ func run(commands ...[]string) (string, bool) {
 		}
 		// jobs
 		if command == "jobs" {
-			allJobs := showJobs()
+			allJobs := showJobs(false)
 			for i := len(allJobs) - 1; i >= 0; i-- {
 				out += allJobs[i]
 			}
@@ -231,5 +231,6 @@ func run(commands ...[]string) (string, bool) {
 		out += command + ": command not found\n"
 		success = false
 	}
+	out += strings.Join(showJobs(true), "")
 	return out, success
 }

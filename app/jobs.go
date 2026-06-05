@@ -55,7 +55,7 @@ func addJob(J *Job) int {
 	return len(jobs)
 }
 
-func showJobs() []string {
+func showJobs(filterDone bool) []string {
 	var all []string
 	var line strings.Builder
 	sz := len(jobs) - 1
@@ -81,7 +81,9 @@ func showJobs() []string {
 		}
 
 		line.WriteString("[" + strconv.Itoa(jobs[i].order) + "]" + symb + stat + "\t\t" + commandStr + "\n")
-		all = append(all, line.String())
+		if !filterDone || (filterDone && stat == "Done") {
+			all = append(all, line.String())
+		}
 		line.Reset()
 
 		if stat == "Done" {
