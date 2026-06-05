@@ -229,10 +229,17 @@ func run(commands ...[]string) (string, bool) {
 		if command == "complete" {
 			// complete -C <program> <command>
 			args := commands[i][1:]
-			for j := 0; j+2 < len(args); j++ {
-				if args[j] == "-C" {
+			for j := 0; j+1 < len(args); j++ {
+				if args[j] == "-C" && j+2 < len(args) {
 					RegisterCompletion(args[j+2], args[j+1])
 					j += 2
+				} else if args[j] == "-p" {
+					prog, ok := completionMap[args[j+1]]
+					if ok {
+						out += "complete -C '" + prog + "' " + args[j+1] + "\n"
+					} else {
+						out += "complete: " + args[j+1] + ": no completion specification\n"
+					}
 				}
 			}
 			continue
