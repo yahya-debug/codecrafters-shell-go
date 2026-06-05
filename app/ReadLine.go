@@ -44,8 +44,7 @@ func ReadLine() string {
 		os.Stdin.Read(buf)
 		switch buf[0] {
 		case '\n', '\r':
-			fmt.Println()
-			fmt.Print("\r")
+			fmt.Print("\r\n")
 			tabs = 0
 			cursor = 0
 			if strings.TrimRight(string(line), "\r\n") != "" {
@@ -109,8 +108,7 @@ func ReadLine() string {
 				}
 			}
 		case 3: // Ctrl+C
-			fmt.Println()
-			fmt.Print("\r")
+			fmt.Print("\r\n")
 			return "exit"
 		default:
 			line = append(line[:cursor], append([]byte{buf[0]}, line[cursor:]...)...)
