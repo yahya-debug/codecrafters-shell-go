@@ -51,14 +51,21 @@ func showJobs() []string {
 	var all []string
 	var line strings.Builder
 	for i := len(jobs) - 1; i >= 0; i-- {
+		symb := "  "
 		stat := "Running"
 		r := i + 1
+
+		if i == len(jobs)-1 {
+			symb = "+  "
+		} else if i == len(jobs)-2 {
+			symb = "-  "
+		}
 
 		if jobs[i].completed {
 			stat = "Done"
 		}
 
-		line.WriteString("[" + strconv.Itoa(r) + "]  " + stat + "\t\t" + strings.Join(jobs[i].command, " ") + "\n")
+		line.WriteString("[" + strconv.Itoa(r) + "]" + symb + stat + "\t\t" + strings.Join(jobs[i].command, " ") + "\n")
 		all = append(all, line.String())
 		line.Reset()
 
