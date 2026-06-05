@@ -66,9 +66,11 @@ func showJobs() []string {
 			stat = "Done"
 		}
 
-		commandStr := strings.Join(jobs[i].command, " ") + " &"
+		var commandStr string
 		if stat != "Running" {
 			commandStr = strings.TrimSpace(commandStr)
+		} else {
+			commandStr = strings.Join(jobs[i].command, " ") + " &"
 		}
 
 		line.WriteString("[" + strconv.Itoa(r) + "]" + symb + stat + "\t\t" + commandStr + "\n")
