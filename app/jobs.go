@@ -68,7 +68,7 @@ func showJobs() []string {
 
 		var commandStr string
 		if stat != "Running" {
-			commandStr = strings.TrimSpace(commandStr)
+			commandStr = strings.Join(jobs[i].command, " ")
 		} else {
 			commandStr = strings.Join(jobs[i].command, " ") + " &"
 		}
