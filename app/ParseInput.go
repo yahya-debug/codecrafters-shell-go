@@ -75,6 +75,7 @@ func ParseInput(str string) ([]string, bool) {
 				}
 				continue
 			}
+			cur.WriteByte(str[i])
 			continue
 		case '2':
 			if i < len(str)-2 && str[i+1] == '>' && str[i+2] == '>' {
@@ -95,6 +96,8 @@ func ParseInput(str string) ([]string, bool) {
 				i++
 				continue
 			}
+			cur.WriteByte(str[i])
+			continue
 		}
 		cur.WriteByte(str[i])
 	}
