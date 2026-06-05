@@ -317,5 +317,47 @@ func auto_complete(str []byte) []byte {
 	if !strings.Contains(strings.TrimLeft(cmd, " "), " ") {
 		return completeComm()
 	}
+
+	// Check for a -C registered completion program before falling back to files.
+	candidates := completionCandidates(cmd, len(cmd))
+	if candidates != nil {
+		lcp := LCP(candidates)
+		parts, _ := ParseInput(strings.TrimLeft(cmd, " "))
+		word := ""
+		if len(parts) > 0 && cmd[len(cmd)-1] != ' ' {
+			word = parts[len(parts)-1]
+		}
+		prefix := strings.TrimSuffix(cmd, word)
+
+		if tabs == 1 {
+			if len(candidates) == 1 {
+				result := prefix + candidates[0] + " "
+				cursor = len(result)
+				redraw([]byte(result), true)
+				tabs = 0
+				return []byte(result)
+			} else if len(lcp) > len(word) {
+				result := prefix + lcp
+				cursor = len(result)
+				redraw([]byte(result), true)
+				return []byte(result)
+			} else {
+				fmt.Print("\a")
+				return str
+			}
+		} else {
+			if len(candidates) > 1 {
+				fmt.Println("\r")
+				for _, c := range candidates {
+					fmt.Printf("%s  ", c)
+				}
+				fmt.Println("\r")
+			} else {
+				fmt.Print("\a")
+			}
+			return str
+		}
+	}
+
 	return completeFile()
 }

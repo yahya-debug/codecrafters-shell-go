@@ -28,7 +28,7 @@ func Executable(arg string) (bool, string) {
 	return false, ""
 }
 
-var comm []string = []string{"cd", "echo", "exit", "history", "jobs", "pwd", "type"}
+var comm []string = []string{"cd", "complete", "echo", "exit", "history", "jobs", "pwd", "type"}
 var execs []string
 var hist_def_file = os.Getenv("HISTFILE")
 
@@ -144,6 +144,7 @@ func run(commands ...[]string) (string, bool) {
 			}
 			continue
 		}
+
 		// History
 		if command == "history" {
 			var err error
@@ -195,6 +196,7 @@ func run(commands ...[]string) (string, bool) {
 			}
 			continue
 		}
+
 		// get working directory
 		if command == "pwd" {
 			if pwd, err := os.Getwd(); err == nil {
@@ -202,6 +204,7 @@ func run(commands ...[]string) (string, bool) {
 			}
 			continue
 		}
+
 		// Handle absolute path
 		if command == "cd" {
 			arg_, _ := ParseInput(strings.Join(commands[i], " "))
@@ -212,6 +215,7 @@ func run(commands ...[]string) (string, bool) {
 			}
 			continue
 		}
+
 		// jobs
 		if command == "jobs" {
 			allJobs := showJobs(false)
@@ -220,6 +224,20 @@ func run(commands ...[]string) (string, bool) {
 			}
 			continue
 		}
+
+		// complete
+		if command == "complete" {
+			// complete -C <program> <command>
+			args := commands[i][1:]
+			for j := 0; j+2 < len(args); j++ {
+				if args[j] == "-C" {
+					RegisterCompletion(args[j+2], args[j+1])
+					j += 2
+				}
+			}
+			continue
+		}
+
 		// Run external command
 		if ok, _ := Executable(command); ok {
 			if !external_command(commands[i], os.Stdin, os.Stdout, os.Stderr) {
