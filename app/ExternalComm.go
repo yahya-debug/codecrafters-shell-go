@@ -57,7 +57,6 @@ func external_command(commandLn []string, in, out, errOut *os.File) bool {
 		}
 	}
 
-	fmt.Println(tp)
 	program := exec.Command(commandLn[0], tp...)
 
 	// use pipe/terminal passed from caller
