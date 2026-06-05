@@ -62,7 +62,6 @@ func showJobs() []string {
 	for i := sz; i >= 0; i-- {
 		symb := "  "
 		stat := "Running"
-		r := i + 1
 
 		if i == sz {
 			symb = "+  "
@@ -81,7 +80,7 @@ func showJobs() []string {
 			commandStr = strings.Join(jobs[i].command, " ") + " &"
 		}
 
-		line.WriteString("[" + strconv.Itoa(r) + "]" + symb + stat + "\t\t" + commandStr + "\n")
+		line.WriteString("[" + strconv.Itoa(jobs[i].order) + "]" + symb + stat + "\t\t" + commandStr + "\n")
 		all = append(all, line.String())
 		line.Reset()
 
