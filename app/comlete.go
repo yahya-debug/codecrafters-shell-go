@@ -63,5 +63,12 @@ func completionCandidates(line string, point int) []string {
 		}
 	}
 
-	return runCompletionProgram(prog, line[:point], point, word, prevWord)
+	results := runCompletionProgram(prog, line[:point], point, word, prevWord)
+	var filtered []string
+	for _, c := range results {
+		if strings.HasPrefix(c, word) {
+			filtered = append(filtered, c)
+		}
+	}
+	return filtered
 }
