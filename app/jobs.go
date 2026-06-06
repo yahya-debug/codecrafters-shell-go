@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"runtime"
 	"strconv"
 	"strings"
 )
@@ -11,11 +12,20 @@ import (
 var jobs []*Job
 
 type Job struct {
-	order     int
-	command   []string
-	PID       int
-	process   *exec.Cmd
-	completed bool
+	order   int
+	command []string
+	PID     int
+	process *exec.Cmd
+	doneCh  chan struct{}
+}
+
+func (j *Job) isDone() bool {
+	select {
+	case <-j.doneCh:
+		return true
+	default:
+		return false
+	}
 }
 
 func jobRun(inp []string) {
@@ -38,15 +48,14 @@ func jobRun(inp []string) {
 	}
 
 	fmt.Printf("[%d] %d\n", ord, runInst.Process.Pid)
-
 	os.Stdout.Sync()
 
-	newJob := &Job{ord, inp, runInst.Process.Pid, runInst, false}
+	newJob := &Job{ord, inp, runInst.Process.Pid, runInst, make(chan struct{})}
 	_ = addJob(newJob)
 
-	go func(J *Job) { // run in background, line by line block by block then changes the status of completion
+	go func(J *Job) {
 		_ = J.process.Wait()
-		J.completed = true
+		close(J.doneCh)
 	}(newJob)
 }
 
@@ -56,6 +65,9 @@ func addJob(J *Job) int {
 }
 
 func showJobs(filterDone bool) []string {
+	// Yield so any completion goroutines can run before we check status.
+	runtime.Gosched()
+
 	var all []string
 	var line strings.Builder
 	sz := len(jobs) - 1
@@ -69,19 +81,19 @@ func showJobs(filterDone bool) []string {
 			symb = "-  "
 		}
 
-		if jobs[i].completed {
+		if jobs[i].isDone() {
 			stat = "Done"
 		}
 
 		var commandStr string
-		if stat != "Running" {
-			commandStr = strings.Join(jobs[i].command, " ")
-		} else {
+		if stat == "Running" {
 			commandStr = strings.Join(jobs[i].command, " ") + " &"
+		} else {
+			commandStr = strings.Join(jobs[i].command, " ")
 		}
 
 		line.WriteString("[" + strconv.Itoa(jobs[i].order) + "]" + symb + stat + "\t\t" + commandStr + "\n")
-		if !filterDone || (filterDone && stat == "Done") {
+		if !filterDone || stat == "Done" {
 			all = append(all, line.String())
 		}
 		line.Reset()
