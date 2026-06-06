@@ -17,8 +17,8 @@ func RegisterCompletion(command, program string) {
 
 // runCompletionProgram calls the -C program and returns one candidate per output line.
 // Env: COMP_LINE, COMP_POINT. Args: program word prev-word.
-func runCompletionProgram(program, line string, point int, word, prevWord string) []string {
-	cmd := exec.Command(program, word, prevWord)
+func runCompletionProgram(program, cmdName, line string, point int, word, prevWord string) []string {
+	cmd := exec.Command(program, cmdName, word, prevWord)
 	cmd.Env = append(os.Environ(),
 		"COMP_LINE="+line,
 		"COMP_POINT="+strconv.Itoa(point),
@@ -63,7 +63,7 @@ func completionCandidates(line string, point int) []string {
 		}
 	}
 
-	results := runCompletionProgram(prog, line[:point], point, word, prevWord)
+	results := runCompletionProgram(prog, parts[0], line[:point], point, word, prevWord)
 	var filtered []string
 	for _, c := range results {
 		if strings.HasPrefix(c, word) {
