@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"os"
 	"os/exec"
 	"strconv"
@@ -22,12 +23,11 @@ func runCompletionProgram(program, line string, point int, word, prevWord string
 		"COMP_LINE="+line,
 		"COMP_POINT="+strconv.Itoa(point),
 	)
-	out, err := cmd.Output()
-	if err != nil {
-		return nil
-	}
+	var buf bytes.Buffer
+	cmd.Stdout = &buf
+	cmd.Run() // ignore exit code — many completion programs exit non-zero even on success
 	var results []string
-	for _, s := range strings.Split(string(out), "\n") {
+	for _, s := range strings.Split(buf.String(), "\n") {
 		if s != "" {
 			results = append(results, s)
 		}
