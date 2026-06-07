@@ -105,7 +105,7 @@ func ParseInput(str string) ([]string, bool) {
 	if cur.Len() > 0 {
 		res = append(res, cur.String())
 	}
-	for it := range res {
+	for it := 0; it < len(res); it++ {
 		if strings.Contains(res[it], "${") {
 			for i := 0; i < len(res[it]); i++ {
 				if i+1 < len(res[it]) && res[it][i] == '$' && res[it][i+1] == '{' {
