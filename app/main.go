@@ -255,7 +255,7 @@ func run(commands ...[]string) (string, bool) {
 				key, val := splitted[0], splitted[1]
 				err := addVar(key, val)
 				if err != nil {
-					out += fmt.Sprintf("declare: `%s': not a valid identifier", args[0])
+					out += fmt.Sprintf("declare: `%s': not a valid identifier\n", args[0])
 				}
 			}
 			if len(args) >= 2 {
