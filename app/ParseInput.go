@@ -101,8 +101,15 @@ func ParseInput(str string) ([]string, bool) {
 		}
 		cur.WriteByte(str[i])
 	}
+
 	if cur.Len() > 0 {
 		res = append(res, cur.String())
+	}
+	for _, it := res {
+		if len(it) > 1 && it[0] == '$' {
+			args[i] = shellVariables[it[1:]]
+			i++
+		}
 	}
 	return res, multi
 }
