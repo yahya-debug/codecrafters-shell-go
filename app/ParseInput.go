@@ -106,8 +106,21 @@ func ParseInput(str string) ([]string, bool) {
 		res = append(res, cur.String())
 	}
 	for it := range res {
-		if len(res[it]) > 1 && res[it][0] == '$' {
-			res[it] = shellVariables[res[it][1:]]
+		if strings.Contains(res[it], "${") {
+			for i := 0; i < len(res[it]); i++ {
+				if i+1 < len(res[it]) && res[it][i] == '$' && res[it][i+1] == '{' {
+					var key strings.Builder
+					var j int
+					for j = i + 2; j < len(res[it]); j++ {
+						if res[it][j] == '}' {
+							break
+						}
+						key.WriteByte(res[it][j])
+					}
+					res[it] = res[it][:i] + shellVariables[key.String()] + res[it][j+1:]
+					key.Reset()
+				}
+			}
 		} else if strings.Contains(res[it], "$") {
 			res[it] = strings.Split(res[it], "$")[0] + shellVariables[strings.Split(res[it], "$")[1]]
 		}
