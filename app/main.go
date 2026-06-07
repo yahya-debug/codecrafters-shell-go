@@ -28,7 +28,7 @@ func Executable(arg string) (bool, string) {
 	return false, ""
 }
 
-var comm []string = []string{"cd", "complete", "echo", "exit", "history", "jobs", "pwd", "type"}
+var comm []string = []string{"cd", "complete", "declare", "echo", "exit", "history", "jobs", "pwd", "type"}
 var execs []string
 var hist_def_file = os.Getenv("HISTFILE")
 
@@ -247,6 +247,21 @@ func run(commands ...[]string) (string, bool) {
 			continue
 		}
 
+		// declare
+		if command == "declare" {
+			args := commands[i][1:]
+			if strings.Contains(args[0], "=") {
+				splitted := strings.Split(args[0], "=")
+				key, val := splitted[0], splitted[1]
+				addVar(key, val)
+			}
+			if len(args) >= 2 {
+				if args[0] == "-p" {
+					out += printVar(args[1])
+				}
+			}
+			continue
+		}
 		// Run external command
 		if ok, _ := Executable(command); ok {
 			if !external_command(commands[i], os.Stdin, os.Stdout, os.Stderr) {
