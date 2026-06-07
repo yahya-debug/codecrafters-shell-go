@@ -105,10 +105,9 @@ func ParseInput(str string) ([]string, bool) {
 	if cur.Len() > 0 {
 		res = append(res, cur.String())
 	}
-	for _, it := res {
+	for _, it := range res {
 		if len(it) > 1 && it[0] == '$' {
-			args[i] = shellVariables[it[1:]]
-			i++
+			it = shellVariables[it[1:]]
 		}
 	}
 	return res, multi
