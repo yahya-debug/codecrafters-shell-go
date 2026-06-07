@@ -109,7 +109,7 @@ func ParseInput(str string) ([]string, bool) {
 		if len(res[it]) > 1 && res[it][0] == '$' {
 			res[it] = shellVariables[res[it][1:]]
 		} else if strings.Contains(res[it], "$") {
-			res[it] = strings.Join([strings.Split(res[it], "$")[0], shellVariables[strings.Split(res[it], "$")[1]]], "")
+			res[it] = strings.Split(res[it], "$")[0] + shellVariables[strings.Split(res[it], "$")[1]]
 		}
 	}
 	return res, multi
