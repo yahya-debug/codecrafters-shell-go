@@ -8,7 +8,7 @@ import (
 var shellVariables = map[string]string{}
 
 func addVar(key, val string) error {
-	if (key[0] >= 'A' && key[0] <= 'Z') || (key[0] >= 'a' && key[0] <= 'z') || key[0] == '_' {
+	if !((key[0] >= 'A' && key[0] <= 'Z') || (key[0] >= 'a' && key[0] <= 'z') || key[0] == '_') {
 		return errors.New("not a valid identifier")
 	}
 	shellVariables[key] = val
