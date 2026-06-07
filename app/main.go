@@ -240,6 +240,8 @@ func run(commands ...[]string) (string, bool) {
 					} else {
 						out += "complete: " + args[j+1] + ": no completion specification\n"
 					}
+				} else if args[j] == "-r" {
+					delete(completionMap, args[j+1])
 				}
 			}
 			continue
