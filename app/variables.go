@@ -17,6 +17,6 @@ func printVar(key string) string {
 	if ok {
 		return fmt.Sprintf("declare -- %s=\"%s\"", key, val)
 	} else {
-		return fmt.Sprintf("declare: %s: not found", key)
+		return fmt.Sprintf("declare: %s: not found\n", key)
 	}
 }
