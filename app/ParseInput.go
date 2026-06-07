@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"strings"
 )
 
@@ -105,9 +106,10 @@ func ParseInput(str string) ([]string, bool) {
 	if cur.Len() > 0 {
 		res = append(res, cur.String())
 	}
-	for _, it := range res {
-		if len(it) > 1 && it[0] == '$' {
-			it = shellVariables[it[1:]]
+	for it := range res {
+		if len(res[it]) > 1 && res[it][0] == '$' {
+			res[it] = shellVariables[res[it][1:]]
+			fmt.Print(res[it])
 		}
 	}
 	return res, multi
