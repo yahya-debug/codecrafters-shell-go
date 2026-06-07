@@ -253,7 +253,10 @@ func run(commands ...[]string) (string, bool) {
 			if strings.Contains(args[0], "=") {
 				splitted := strings.Split(args[0], "=")
 				key, val := splitted[0], splitted[1]
-				addVar(key, val)
+				err := addVar(key, val)
+				if err != nil {
+					out += fmt.Sprintf("declare: `%s': not a valid identifier", args[0])
+				}
 			}
 			if len(args) >= 2 {
 				if args[0] == "-p" {
