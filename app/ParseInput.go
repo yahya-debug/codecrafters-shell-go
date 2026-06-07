@@ -127,6 +127,7 @@ func ParseInput(str string) ([]string, bool) {
 		if len(strings.TrimSpace(res[it])) == 0 {
 			if it+1 < len(res) {
 				res = append(res[:it], res[it+1:]...)
+				it--
 			} else {
 				res = res[:it]
 			}
