@@ -125,7 +125,11 @@ func ParseInput(str string) ([]string, bool) {
 			res[it] = strings.Split(res[it], "$")[0] + shellVariables[strings.Split(res[it], "$")[1]]
 		}
 		if len(strings.TrimSpace(res[it])) == 0 {
-			res = append(res[:it], res[it+1:]...)
+			if it+1 < len(res) {
+				res = append(res[:it], res[it+1:]...)
+			} else {
+				res = res[:it]
+			}
 		}
 	}
 
