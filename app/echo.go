@@ -52,6 +52,9 @@ func HandleEcho(args []string) {
 				}
 			}
 			i++
+		} else if len(item) > 1 && item[0] == '$' {
+			args[i] = shellVariables[item[1:]]
+			i++
 		} else {
 			i++
 		}
